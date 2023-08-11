@@ -8,6 +8,7 @@ from .model import Model
 from .hyperparameters import hp
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
+ACTIONS_NUM = [0, 1, 2, 3, 4, 5]
 
 
 def setup(self):
@@ -48,10 +49,9 @@ def act(self, game_state: dict) -> str:
     :param game_state: The dictionary that describes everything on the board.
     :return: The action to take as a string.
     """
-    # todo Exploration vs exploitation
     if self.train and random.random() < hp.epsilon:
         self.logger.debug("Choosing action purely at random.")
-        # idea: use decision of rule-based agent here
+        # idea: use decision of rule-based agent here and/or decay
         return np.random.choice(ACTIONS, p=[.2, .2, .2, .2, .1, .1])
 
     self.logger.debug("Querying model for action.")
