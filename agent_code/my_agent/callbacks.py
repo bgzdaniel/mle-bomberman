@@ -1,9 +1,11 @@
 import os
 import pickle
 import random
+import torch
 
 import numpy as np
-
+from .model import Model
+from .hyperparameters import hp
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
@@ -24,12 +26,17 @@ def setup(self):
     """
     if self.train or not os.path.isfile("my-saved-model.pt"):
         self.logger.info("Setting up model from scratch.")
-        weights = np.random.rand(len(ACTIONS))
-        self.model = weights / weights.sum()
+        #weights = np.random.rand(len(ACTIONS))
+        #self.model = weights / weights.sum()
+
+        # here we do the second step from the paper 'Initialize action-value function Q w/ random weights'
+        self.q_network = Model(n_features=17*17, n_actions=len(ACTIONS))
+        self.target_network = Model(n_features=17*17, n_actions=len(ACTIONS))
     else:
-        self.logger.info("Loading model from saved state.")
-        with open("my-saved-model.pt", "rb") as file:
-            self.model = pickle.load(file)
+        pass # figure out how to do this later
+        #self.logger.info("Loading model from saved state.")
+        #with open("my-saved-model.pt", "rb") as file:
+        #    self.model = pickle.load(file)
 
 
 def act(self, game_state: dict) -> str:
@@ -42,17 +49,19 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     # todo Exploration vs exploitation
-    random_prob = .1
-    if self.train and random.random() < random_prob:
+    if self.train and random.random() < hp.epsilon:
         self.logger.debug("Choosing action purely at random.")
-        # 80%: walk in any direction. 10% wait. 10% bomb.
+        # idea: use decision of rule-based agent here
         return np.random.choice(ACTIONS, p=[.2, .2, .2, .2, .1, .1])
 
     self.logger.debug("Querying model for action.")
-    return np.random.choice(ACTIONS, p=self.model)
+    action = self.q_network(state_to_features(game_state))
+    action = ACTIONS[torch.argmax(action).item()]
+    self.logger.debug(f"Action Prediction by Q-Network: {action}")
+    return action
 
 
-def state_to_features(game_state: dict) -> np.array:
+def state_to_features(game_state: dict) -> torch.tensor:
     """ Maps the game state to a 17x17 grid that contains values that represent the game field.
     The following values are used:
     wall: -1
@@ -83,5 +92,4 @@ def state_to_features(game_state: dict) -> np.array:
 
     field[game_state['self'][3]] = 5   
     
-    # return one dimensional array
-    return field.flatten()
+    return torch.tensor(field, dtype=torch.float32).flatten()

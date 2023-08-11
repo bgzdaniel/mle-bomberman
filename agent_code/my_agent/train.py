@@ -81,7 +81,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     # Store the model
     with open("my-saved-model.pt", "wb") as file:
-        pickle.dump(self.model, file)
+        pickle.dump(self.target_network, file)
 
     self.memory.push(self.transitions)
     self.memory.save()
