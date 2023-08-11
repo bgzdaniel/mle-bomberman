@@ -5,6 +5,8 @@ from typing import List
 
 import events as e
 from .callbacks import state_to_features
+from .replay_memory import ReplayMemory
+from .hyperparameters import hp
 
 # This is only an example!
 Transition = namedtuple('Transition',
@@ -30,6 +32,8 @@ def setup_training(self):
     # (s, a, r, s')
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
 
+    # initialize replay memory
+    self.memory = ReplayMemory(hp.memory_size, hp.batch_size)
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
     """
@@ -79,6 +83,8 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     with open("my-saved-model.pt", "wb") as file:
         pickle.dump(self.model, file)
 
+    self.memory.push(self.transitions)
+    self.memory.save()
 
 def reward_from_events(self, events: List[str]) -> int:
     """
