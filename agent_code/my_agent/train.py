@@ -32,7 +32,7 @@ def setup_training(self):
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
 
     # initialize replay memory
-    self.memory = ReplayMemory(hp.memory_size, hp.batch_size)
+    self.memory = ReplayMemory(hp.memory_size, hp.batch_size, self.device)
 
     # initialize loss and optimizer
     self.loss_object = nn.SmoothL1Loss()
@@ -100,17 +100,26 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
         pickle.dump(self.target_network, file)
     
     self.memory.save()
+    print(f"\nScore {last_game_state['self'][1]}")
+    total_reward = sum([transition.reward for transition in self.transitions])
+    print(f"Reward {total_reward}")
 
 def reward_from_events(self, events: List[str]) -> torch.tensor:
     """
     Rewards agent to navigate field (navigate field, destroy crates, collects coins, don't die)
     """
     game_rewards = {
-        e.COIN_COLLECTED: 1,
+        e.COIN_COLLECTED: 5,
         e.KILLED_OPPONENT: 5,
         e.CRATE_DESTROYED: 0.5,
         e.KILLED_SELF: -10,
         e.INVALID_ACTION: -1,
+        e.WAITED: -0.5,
+        e.SURVIVED_ROUND: 0.5,
+        e.MOVED_DOWN: 0.1,
+        e.MOVED_UP: 0.1,
+        e.MOVED_RIGHT: 0.1,
+        e.MOVED_LEFT: 0.1,
     }
     reward_sum = 0
     for event in events:

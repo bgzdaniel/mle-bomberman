@@ -29,10 +29,12 @@ def setup(self):
         self.logger.info("Setting up model from scratch.")
         #weights = np.random.rand(len(ACTIONS))
         #self.model = weights / weights.sum()
+        if not hasattr(self, "device"):
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # here we do the second step from the paper 'Initialize action-value function Q w/ random weights'
-        self.q_network = Model(n_features=17*17, n_actions=len(ACTIONS))
-        self.target_network = Model(n_features=17*17, n_actions=len(ACTIONS))
+        self.q_network = Model(n_features=17*17, n_actions=len(ACTIONS)).to(self.device)
+        self.target_network = Model(n_features=17*17, n_actions=len(ACTIONS)).to(self.device)
     else:
         pass # figure out how to do this later
         #self.logger.info("Loading model from saved state.")
@@ -55,7 +57,7 @@ def act(self, game_state: dict) -> str:
         return np.random.choice(ACTIONS, p=[.2, .2, .2, .2, .1, .1])
 
     self.logger.debug("Querying model for action.")
-    action = self.q_network(state_to_features(game_state))
+    action = self.q_network(state_to_features(game_state).to(self.device))
     action = ACTIONS[torch.argmax(action).item()]
     self.logger.debug(f"Action Prediction by Q-Network: {action}")
     return action
