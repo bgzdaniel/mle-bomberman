@@ -92,4 +92,6 @@ def state_to_features(game_state: dict) -> torch.tensor:
 
     field[game_state['self'][3]] = 5   
     
-    return torch.tensor(field, dtype=torch.float32).flatten()
+    features = torch.tensor(field, dtype=torch.float32).flatten()
+    assert features.shape == hp.feature_shape
+    return features 

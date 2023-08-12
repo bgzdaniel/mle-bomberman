@@ -99,7 +99,6 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     with open("my-saved-model.pt", "wb") as file:
         pickle.dump(self.target_network, file)
     
-    print(self.memory.size())
     self.memory.save()
 
 def reward_from_events(self, events: List[str]) -> torch.tensor:
@@ -108,7 +107,7 @@ def reward_from_events(self, events: List[str]) -> torch.tensor:
     """
     game_rewards = {
         e.COIN_COLLECTED: 1,
-        #e.KILLED_OPPONENT: 5,
+        e.KILLED_OPPONENT: 5,
         e.CRATE_DESTROYED: 0.5,
         e.KILLED_SELF: -10,
         e.INVALID_ACTION: -1,
@@ -132,8 +131,6 @@ def update(self):
     replay_batch = self.memory.sample()
 
     # calculate the predicted Q values in minibatch
-    print(replay_batch.state.dim())
-    print(len(replay_batch.state))
     predictions = self.q_network(replay_batch.state).gather(1, replay_batch.action)
     targets = replay_batch.reward + hp.discount * self.target_network(replay_batch.next_state).max(1)[0].detach().unsqueeze(1)
 

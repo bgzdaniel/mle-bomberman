@@ -1,9 +1,13 @@
 import pickle
 import random
+import torch
+
+from .resources import Transition
+from .hyperparameters import hp
 
 class ReplayMemory:
 
-    def __init__(self, capacity, batch_size):
+    def __init__(self, capacity: int, batch_size: int) -> None:
         self.file_name = "replay_memory.pkl"
         self.capacity = capacity
         self.batch_size = batch_size
@@ -14,20 +18,36 @@ class ReplayMemory:
         except FileNotFoundError:
             self.memory = []
 
-    def push(self, transition):
+    def push(self, transition: Transition) -> None:
         """Adds a transition to memory"""
-        self.memory += transition
-        if len(self.memory) > self.capacity:
-            del self.memory[:len(self.memory) - self.capacity]
+        assert transition.state.shape == torch.Size([17**2])
+        assert transition.next_state.shape == torch.Size([17**2])
+        assert transition.action.shape == torch.Size([1])
+        assert transition.reward.shape == torch.Size([1])
 
-    def sample(self):
-        """Returns a random sample of transitions"""
-        return random.sample(self.memory, self.batch_size)
+        self.memory.append(transition)
+        if len(self.memory) > self.capacity:
+            self.memory.pop(0)
+
+    def sample(self) -> Transition:
+        """Returns a Transition of torch batches"""
+        sample = random.sample(self.memory, self.batch_size)
+
+        # this probably could be refactored
+        data = Transition(state=torch.cat([transition.state for transition in sample]).view(hp.batch_size,-1),
+                          action=torch.unsqueeze(torch.tensor([transition.action for transition in sample]),1),
+                          next_state=torch.cat([transition.next_state for transition in sample]).view(hp.batch_size,-1),
+                          reward=torch.unsqueeze(torch.tensor([transition.reward for transition in sample]),1))
+        assert data.state.shape == torch.Size([hp.batch_size,17**2]), data.state.shape
+        assert data.next_state.shape == torch.Size([hp.batch_size,17**2]), data.next_state.shape
+        assert data.action.shape == torch.Size([hp.batch_size,1]), data.action.shape
+        assert data.reward.shape == torch.Size([hp.batch_size,1]), data.reward.shape
+        return data
     
-    def save(self):
+    def save(self) -> None:
         """Saves the memory to a file"""
         with open(self.file_name, "wb") as file:
             pickle.dump(self.memory, file)
 
-    def size(self):
+    def size(self) -> int:
         return len(self.memory)
