@@ -1,9 +1,11 @@
 from collections import namedtuple, deque
 from torch import nn
 from torch import optim
-import pickle
+import numpy as np
 import torch
 from typing import List
+import matplotlib.pyplot as plt
+
 
 import events as e
 from .callbacks import state_to_features, ACTIONS
@@ -31,6 +33,13 @@ def setup_training(self):
     # (s, a, r, s')
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
 
+    # data collection to monitor training progress
+    self.round = 0
+    self.loss_all_rounds = []
+    self.loss_per_round = []
+    self.score = []
+    self.gradients = []
+    
     # initialize replay memory
     self.memory = ReplayMemory(hp.memory_size, hp.batch_size, self.device)
 
@@ -38,6 +47,8 @@ def setup_training(self):
     self.loss_object = nn.SmoothL1Loss()
     self.loss = 0
     self.optimizer = optim.AdamW(self.q_network.parameters(), lr=1e-4, amsgrad=True)
+
+    
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
     """
@@ -95,14 +106,20 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
     self.transitions.append(Transition(state_to_features(last_game_state), last_action, None, reward_from_events(self, events)))
 
-    # Store the model
-    with open("my-saved-model.pt", "wb") as file:
-        pickle.dump(self.target_network, file)
+    self.loss_all_rounds.append(np.mean(self.loss_per_round))
+    self.score.append(last_game_state["self"][1])
+    self.round += 1
+
+    if self.round == 500:
+        plt.bar(range(len(self.loss_all_rounds)), self.loss_all_rounds, color='blue')
+        plt.savefig("loss.png")
+        plt.close()
+
+        plt.bar(range(len(self.score)), self.score, color='blue')
+        plt.savefig("score.png")
+        plt.close()
+
     
-    self.memory.save()
-    print(f"\nScore {last_game_state['self'][1]}")
-    total_reward = sum([transition.reward for transition in self.transitions])
-    print(f"Reward {total_reward}")
 
 def reward_from_events(self, events: List[str]) -> torch.tensor:
     """
@@ -145,7 +162,14 @@ def update(self):
 
     # use Huber loss like suggested in the paper
     self.loss = self.loss_object(predictions, targets)
+    self.loss_per_round.append(self.loss.item())
     self.optimizer.zero_grad()
     self.loss.backward()
+    
+
+    # log the gradient values
+    #for tag, value in self.q_network.named_parameters():
+    #    tag = tag.replace('.', '/')
+    #    self.gradients.append(mean(value.grad.data.cpu().numpy()))
     self.optimizer.step()
 
