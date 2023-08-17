@@ -44,16 +44,16 @@ def setup_training(self):
     self.weights_copied_iter = 0
 
     with open("score_per_round.txt", "w") as file:
-        file.write("training_iter\t round\t epsilon\t score\t killed_self\t reward_per_round\t invalid_actions_per_round\n")
+        file.write("training_iter\t round\t epsilon\t score\t killed_self\t reward_per_round\t invalid_actions_per_round\t steps_survived\n")
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -1, # invalid actions waste time
-        e.WAITED: -1, # need for pro-active agent
-        e.CRATE_DESTROYED: 1,
-        e.COIN_FOUND: 2,
+        e.INVALID_ACTION: -0.5, # invalid actions waste time
+        e.WAITED: -0.25, # need for pro-active agent
+        e.CRATE_DESTROYED: 2,
+        e.COIN_FOUND: 3,
         e.COIN_COLLECTED: 20,
         e.KILLED_OPPONENT: 100,
     }
@@ -78,13 +78,13 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
-    scaling = 4
+    scaling = 5
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
-        total_reward += ((new_bombs_rad[new_player_coord] - 3) * scaling)
+        total_reward += ((new_bombs_rad[new_player_coord] - 4) * scaling)
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
-        total_reward += ((old_bombs_rad[old_player_coord] - 3) * scaling) * -1 * 0.75
+        total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * 0.25
 
     # reward agent for getting close to nearest coin
     if self_action in MOVE_ACTIONS:
@@ -98,7 +98,7 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
         
-        total_reward += (old_min_distance - new_min_distance) / 5
+        total_reward += (old_min_distance - new_min_distance) / 2.5
 
     total_reward /= 10
     return total_reward
@@ -179,7 +179,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.round += 1
 
     with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round:.4f}\t {self.invalid_actions_per_round}\n")
+        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round:.4f}\t {self.invalid_actions_per_round}\t {last_game_state['steps']}\n")
     self.reward_per_round = 0
     self.invalid_actions_per_round = 0
 
