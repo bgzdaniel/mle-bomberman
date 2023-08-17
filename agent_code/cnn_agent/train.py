@@ -35,12 +35,15 @@ def setup_training(self):
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
     self.steps_per_copy = 5000
     self.train_iter = 0
+    
+    # for logging
     self.scores = []
     self.round = 0
     self.reward_per_round = 0
+    self.invalid_actions_per_round = 0
 
     with open("score_per_round.txt", "w") as file:
-        file.write("training_iter\t round\t epsilon\t score\t killed_self\t reward_per_round\n")
+        file.write("training_iter\t round\t epsilon\t score\t killed_self\t reward_per_round\t invalid_actions_per_round\n")
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
@@ -61,7 +64,8 @@ def reward_from_events(self, events: List[str]) -> int:
     if e.KILLED_SELF or e.GOT_KILLED in events:
         total_reward += -50
 
-    return (total_reward / 10)
+    total_reward /= 10
+    return total_reward
 
 
 def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
@@ -94,7 +98,8 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
         
         total_reward += (old_min_distance - new_min_distance) / 10
 
-    return (total_reward / 10)
+    total_reward /= 10
+    return total_reward
 
     # TO-DO: reward agent for placing bombs which would hit other players and crates
 
@@ -108,6 +113,9 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     reward += evaluate_reward(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
 
     self.reward_per_round += reward
+
+    if e.INVALID_ACTION in events:
+        self.invalid_actions_per_round += 1
 
     self.transitions.append(Transition(old_features, self.actions.index(self_action), new_features, reward))
     
@@ -135,6 +143,9 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     self.reward_per_round += reward
 
+    if e.INVALID_ACTION in events:
+        self.invalid_actions_per_round += 1
+
     self.transitions.append(Transition(last_features, self.actions.index(last_action), None, reward))
 
     loss = update_params(self)
@@ -152,8 +163,9 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.round += 1
 
     with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round:.4f}\n")
+        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round:.4f}\t {self.invalid_actions_per_round}\n")
     self.reward_per_round = 0
+    self.invalid_actions_per_round = 0
 
 def update_params(self):
     if len(self.transitions) < self.batch_size:
