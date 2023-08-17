@@ -50,7 +50,7 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -5, # invalid actions waste time
+        e.INVALID_ACTION: -2.5, # invalid actions waste time
         e.CRATE_DESTROYED: 1,
         e.COIN_FOUND: 2,
         e.COIN_COLLECTED: 10,
@@ -158,7 +158,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     # copy weights to target net after n steps
     if self.train_iter % self.steps_per_copy:
         self.target_net.load_state_dict(self.policy_net.state_dict())
-        
+
         self.weights_copied_iter += 1
         print(f"weights copied to target net! ({self.weights_copied_iter} times)")
 
