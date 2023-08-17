@@ -50,7 +50,7 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -2.5, # invalid actions waste time
+        e.INVALID_ACTION: -2, # invalid actions waste time
         e.CRATE_DESTROYED: 1,
         e.COIN_FOUND: 2,
         e.COIN_COLLECTED: 10,
@@ -80,10 +80,10 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
 
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
-        total_reward += (new_bombs_rad[new_player_coord] - 4)
+        total_reward += ((new_bombs_rad[new_player_coord] - 4) * 2)
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
-        total_reward += (old_bombs_rad[old_player_coord] - 4) * -1 * 0.75
+        total_reward += ((old_bombs_rad[old_player_coord] - 4) * 2) * -1 * 0.75
 
     # reward agent for getting close to nearest coin
     if self_action in MOVE_ACTIONS:
@@ -97,7 +97,7 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
         
-        total_reward += (old_min_distance - new_min_distance) / 10
+        total_reward += (old_min_distance - new_min_distance) / 5
 
     total_reward /= 10
     return total_reward
