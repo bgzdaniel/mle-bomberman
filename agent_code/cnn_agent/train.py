@@ -39,7 +39,7 @@ def setup_training(self):
     self.round = 0
 
     with open("score_per_round.txt", "w") as file:
-        file.write("training_iter\tround\tscore\tkilled_self\n")
+        file.write("training_iter\t round\t epsilon\t score\t killed_self\n")
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
@@ -127,7 +127,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.scores.append(score)
 
     with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.train_iter}\t{self.round}\t{score}\t{e.KILLED_SELF in events}\n")
+        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon}\t {score}\t {e.KILLED_SELF in events}\n")
 
     last_features = state_to_features(self, last_game_state)
 
