@@ -125,7 +125,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.scores.append(score)
 
     with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.round}\t{score}\n")
+        file.write(f"{self.round}\t{score}\t{e.KILLED_SELF in events}\n")
 
     last_features = state_to_features(self, last_game_state)
 
