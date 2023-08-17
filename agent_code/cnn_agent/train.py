@@ -13,7 +13,7 @@ import events as e
 from .callbacks import state_to_features, DqnNet, get_bomb_rad_dict
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
-TRANSITION_HISTORY_SIZE = int(1e9)
+TRANSITION_HISTORY_SIZE = int(1e6)
 DISCOUNT = 0.9
 
 MOVE_ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT']
@@ -21,7 +21,7 @@ MOVE_ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 def sample(self, batch_size):
     probs = []
     for replay in self.transitions:
-        prob = 1.25 if replay.next_state is not np.ndarray else 1
+        prob = 1.5 if replay.next_state is not np.ndarray else 1
         probs.append(prob)
     return random.choices(self.transitions, weights=probs, k=batch_size)
 
@@ -33,13 +33,13 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = int(1e4)
+    self.steps_per_copy = int(1e3)
     self.train_iter = 0
     self.scores = []
     self.round = 0
 
     with open("score_per_round.txt", "w") as file:
-        file.write("round\tscore\tkilled_self\n")
+        file.write("training_iter\tround\tscore\tkilled_self\n")
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
@@ -127,7 +127,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.scores.append(score)
 
     with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.round}\t{score}\t{e.KILLED_SELF in events}\n")
+        file.write(f"{self.train_iter}\t{self.round}\t{score}\t{e.KILLED_SELF in events}\n")
 
     last_features = state_to_features(self, last_game_state)
 
@@ -143,7 +143,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if self.train_iter % (self.steps_per_copy * 100) and self.batch_size < 512:
+    if self.train_iter % (self.steps_per_copy * 10) and self.batch_size < 512:
         self.batch_size *= 2
 
     self.train_iter += 1
