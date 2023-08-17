@@ -152,7 +152,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.round += 1
 
     with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round}\n")
+        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round:.4f}\n")
     self.reward_per_round = 0
 
 def update_params(self):
