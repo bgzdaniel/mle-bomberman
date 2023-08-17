@@ -51,7 +51,7 @@ def setup(self):
     self.input_channels = 7
 
     self.conv_block_size = 2
-    self.depth = 3
+    self.depth = 4
     self.init_channels = 64
 
     self.field_dim = 0
