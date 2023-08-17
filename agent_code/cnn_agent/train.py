@@ -41,6 +41,7 @@ def setup_training(self):
     self.round = 0
     self.reward_per_round = 0
     self.invalid_actions_per_round = 0
+    self.weights_copied_iter = 0
 
     with open("score_per_round.txt", "w") as file:
         file.write("training_iter\t round\t epsilon\t score\t killed_self\t reward_per_round\t invalid_actions_per_round\n")
@@ -125,10 +126,14 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     if self.train_iter % self.steps_per_copy:
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
+        self.weights_copied_iter += 1
+        print(f"weights copied to target net! ({self.weights_copied_iter} times)")
+
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
     if self.train_iter % (self.steps_per_copy * 10) and self.batch_size < 512:
         self.batch_size *= 2
+        print(f"batch size increased to {self.batch_size}!")
 
     self.train_iter += 1
     
@@ -153,11 +158,15 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     # copy weights to target net after n steps
     if self.train_iter % self.steps_per_copy:
         self.target_net.load_state_dict(self.policy_net.state_dict())
+        
+        self.weights_copied_iter += 1
+        print(f"weights copied to target net! ({self.weights_copied_iter} times)")
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
     if self.train_iter % (self.steps_per_copy * 50) and self.batch_size < 512:
         self.batch_size *= 2
+        print(f"batch size increased to {self.batch_size}!")
 
     self.train_iter += 1
     self.round += 1
