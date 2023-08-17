@@ -5,7 +5,6 @@ import torch
 from torch import nn
 from torch import optim
 import numpy as np
-import matplotlib.pyplot as plt
 
 import pickle
 from typing import List
@@ -163,14 +162,21 @@ def update_params(self):
     predictions = torch.gather(self.policy_net(replays_states), 1, replays_actions)
 
     # calculate targets
-    replays_non_terminal_states = torch.tensor([i for i, replay in enumerate(replays) if type(replay.next_state) is np.ndarray])
+    replays_non_terminal_states = []
+    for i, replay in enumerate(replays):
+        if type(replay.next_state) is np.ndarray:
+            replays_non_terminal_states.append(i)
+    replays_non_terminal_states = torch.tensor(replays_non_terminal_states).to(self.device)
+
     replays_next_states = []
     for replay in replays:
         if type(replay.next_state) is np.ndarray:
             replays_next_states.append(torch.from_numpy(replay.next_state)[None])
     replays_next_states = torch.cat(replays_next_states).to(self.device)
+
     max_future_actions = torch.zeros(self.batch_size, 1)
     max_future_actions[replays_non_terminal_states, :] = torch.max(self.target_net(replays_next_states), dim=1)[0][:, None]
+    
     replays_rewards = torch.tensor([replay.reward for replay in replays]).to(self.device)[:, None]
     targets = replays_rewards + DISCOUNT * max_future_actions
 
