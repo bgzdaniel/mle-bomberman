@@ -174,9 +174,9 @@ def update_params(self):
             replays_next_states.append(torch.from_numpy(replay.next_state)[None])
     replays_next_states = torch.cat(replays_next_states).to(self.device)
 
-    max_future_actions = torch.zeros(self.batch_size, 1)
+    max_future_actions = torch.zeros(self.batch_size, 1).to(self.device)
     max_future_actions[replays_non_terminal_states, :] = torch.max(self.target_net(replays_next_states), dim=1)[0][:, None]
-    
+
     replays_rewards = torch.tensor([replay.reward for replay in replays]).to(self.device)[:, None]
     targets = replays_rewards + DISCOUNT * max_future_actions
 
