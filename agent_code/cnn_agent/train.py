@@ -135,7 +135,7 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if (self.train_iter % (self.steps_per_copy * 15) == 0) and (self.batch_size < 512) and self.train_iter != 0:
+    if (self.train_iter % (self.steps_per_copy * 10) == 0) and (self.batch_size < 512) and self.train_iter != 0:
         self.batch_size *= 2
         with open("score_per_round.txt", "a") as file:
             file.write(f"batch size increased to {self.batch_size}!\n")
@@ -172,7 +172,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if (self.train_iter % (self.steps_per_copy * 15) == 0) and (self.batch_size < 512) and self.train_iter != 0:
+    if (self.train_iter % (self.steps_per_copy * 10) == 0) and (self.batch_size < 512) and self.train_iter != 0:
         self.batch_size *= 2
         with open("score_per_round.txt", "a") as file:
             file.write(f"batch size increased to {self.batch_size}!\n")
