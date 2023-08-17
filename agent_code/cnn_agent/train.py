@@ -34,7 +34,7 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_round = 400
+    self.steps_per_copy = int(1e4)
     self.train_iter = 0
     self.scores = []
     self.round = 0
@@ -111,13 +111,13 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     
     loss = update_params(self)
 
-    # copy weights to target net after every round
-    if self.train_iter % self.steps_per_round:
+    # copy weights to target net after n steps
+    if self.train_iter % self.steps_per_copy:
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-    # increase batch size after every n rounds for dampening of fluctuations
+    # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if self.train_iter % (self.steps_per_round * 10) and self.batch_size < 512:
+    if self.train_iter % (self.steps_per_copy * 10) and self.batch_size < 512:
         self.batch_size *= 2
 
     self.train_iter += 1
@@ -138,13 +138,13 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     loss = update_params(self)
 
-    # copy weights to target net after every round
-    if self.train_iter % self.steps_per_round:
+    # copy weights to target net after n steps
+    if self.train_iter % self.steps_per_copy:
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-    # increase batch size after every n rounds for dampening of fluctuations
+    # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if self.train_iter % (self.steps_per_round * 10) and self.batch_size < 512:
+    if self.train_iter % (self.steps_per_copy * 100) and self.batch_size < 512:
         self.batch_size *= 2
 
     self.train_iter += 1
