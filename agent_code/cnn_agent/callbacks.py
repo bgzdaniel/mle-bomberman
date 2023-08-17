@@ -50,9 +50,9 @@ def setup(self):
     self.field_shape = (17, 17)
     self.input_channels = 7
 
-    self.conv_block_size = 2
-    self.depth = 3
-    self.init_channels = 32
+    self.conv_block_size = 1
+    self.depth = 7
+    self.init_channels = 16
 
     self.field_dim = 0
     self.bombs_dim = 1
