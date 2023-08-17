@@ -19,11 +19,11 @@ DISCOUNT = 0.9
 MOVE_ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 
 def sample(self, batch_size):
-    probs = []
+    weights = []
     for replay in self.transitions:
-        prob = 1.5 if replay.next_state is not np.ndarray else 1
-        probs.append(prob)
-    return random.choices(self.transitions, weights=probs, k=batch_size)
+        weight = 1 if type(replay.next_state) is np.ndarray else 2
+        weights.append(weight)
+    return random.choices(self.transitions, weights=weights, k=batch_size)
 
 
 def setup_training(self):
@@ -33,7 +33,7 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = 2500
+    self.steps_per_copy = 5000
     self.train_iter = 0
     
     # for logging
@@ -50,13 +50,12 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -2.5, # invalid actions waste time
-        e.WAITED: -2.5, # need for pro-active agent
+        e.INVALID_ACTION: -1, # invalid actions waste time
+        e.WAITED: -1, # need for pro-active agent
         e.CRATE_DESTROYED: 1,
         e.COIN_FOUND: 2,
         e.COIN_COLLECTED: 20,
         e.KILLED_OPPONENT: 100,
-        e.SURVIVED_ROUND: 1
     }
 
     for event in events:
@@ -79,12 +78,13 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
+    scaling = 4
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
-        total_reward += ((new_bombs_rad[new_player_coord] - 3) * 2)
+        total_reward += ((new_bombs_rad[new_player_coord] - 3) * scaling)
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
-        total_reward += ((old_bombs_rad[old_player_coord] - 3) * 2) * -1 * 0.75
+        total_reward += ((old_bombs_rad[old_player_coord] - 3) * scaling) * -1 * 0.75
 
     # reward agent for getting close to nearest coin
     if self_action in MOVE_ACTIONS:
@@ -133,7 +133,7 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if (self.train_iter % (self.steps_per_copy * 20) == 0) and (self.batch_size < 512) and self.train_iter != 0:
+    if (self.train_iter % (self.steps_per_copy * 15) == 0) and (self.batch_size < 512) and self.train_iter != 0:
         self.batch_size *= 2
         with open("score_per_round.txt", "a") as file:
             file.write(f"batch size increased to {self.batch_size}!\n")
@@ -170,7 +170,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if (self.train_iter % (self.steps_per_copy * 20) == 0) and (self.batch_size < 512) and self.train_iter != 0:
+    if (self.train_iter % (self.steps_per_copy * 15) == 0) and (self.batch_size < 512) and self.train_iter != 0:
         self.batch_size *= 2
         with open("score_per_round.txt", "a") as file:
             file.write(f"batch size increased to {self.batch_size}!\n")
