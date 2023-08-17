@@ -56,6 +56,7 @@ def reward_from_events(self, events: List[str]) -> int:
         e.COIN_FOUND: 3,
         e.COIN_COLLECTED: 20,
         e.KILLED_OPPONENT: 100,
+        e.SURVIVED_ROUND: 100
     }
 
     for event in events:
