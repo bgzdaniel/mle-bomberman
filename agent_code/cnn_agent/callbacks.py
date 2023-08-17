@@ -45,7 +45,7 @@ def setup(self):
 
     self.epsilon = 1
     self.epsilon_end = 0.05
-    self.epsilon_decay = 0.999
+    self.epsilon_decay = 0.99
 
     self.field_shape = (17, 17)
     self.input_channels = 7

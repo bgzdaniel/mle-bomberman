@@ -50,7 +50,7 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -2, # invalid actions waste time
+        e.INVALID_ACTION: -2.5, # invalid actions waste time
         e.CRATE_DESTROYED: 1,
         e.COIN_FOUND: 2,
         e.COIN_COLLECTED: 10,
