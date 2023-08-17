@@ -33,7 +33,7 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = int(1e3)
+    self.steps_per_copy = 5000
     self.train_iter = 0
     self.scores = []
     self.round = 0
@@ -143,7 +143,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if self.train_iter % (self.steps_per_copy * 10) and self.batch_size < 512:
+    if self.train_iter % (self.steps_per_copy * 50) and self.batch_size < 512:
         self.batch_size *= 2
 
     self.train_iter += 1
