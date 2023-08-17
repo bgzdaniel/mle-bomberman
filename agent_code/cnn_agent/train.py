@@ -21,7 +21,7 @@ MOVE_ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 def sample(self, batch_size):
     weights = []
     for replay in self.transitions:
-        weight = 1 if type(replay.next_state) is np.ndarray else 2
+        weight = 1 if type(replay.next_state) is np.ndarray else 5
         weights.append(weight)
     return random.choices(self.transitions, weights=weights, k=batch_size)
 
@@ -33,7 +33,7 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = 5000
+    self.steps_per_copy = 3000
     self.train_iter = 0
     
     # for logging
@@ -44,19 +44,19 @@ def setup_training(self):
     self.weights_copied_iter = 0
 
     with open("score_per_round.txt", "w") as file:
-        file.write("training_iter\t round\t epsilon\t score\t killed_self\t reward_per_round\t invalid_actions_per_round\t steps_survived\n")
+        file.write("training_iter\t round\t epsilon\t score\t killed_self\t avg_reward_per_step\t invalid_actions_per_round\n")
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -0.5, # invalid actions waste time
-        e.WAITED: -0.25, # need for pro-active agent
+        e.INVALID_ACTION: -1, # invalid actions waste time
+        e.WAITED: -0.5, # need for pro-active agent
         e.CRATE_DESTROYED: 2,
         e.COIN_FOUND: 3,
-        e.COIN_COLLECTED: 20,
-        e.KILLED_OPPONENT: 100,
-        e.SURVIVED_ROUND: 100
+        e.COIN_COLLECTED: 15,
+        e.KILLED_OPPONENT: 75,
+        e.SURVIVED_ROUND: 75
     }
 
     for event in events:
@@ -64,7 +64,7 @@ def reward_from_events(self, events: List[str]) -> int:
             total_reward += game_rewards[event]
 
     if e.KILLED_SELF or e.GOT_KILLED in events:
-        total_reward += -100
+        total_reward += -75
 
     total_reward /= 10
     return total_reward
@@ -79,7 +79,7 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
-    scaling = 5
+    scaling = 3
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
         total_reward += ((new_bombs_rad[new_player_coord] - 4) * scaling)
@@ -99,7 +99,7 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
         
-        total_reward += (old_min_distance - new_min_distance) / 2.5
+        total_reward += (old_min_distance - new_min_distance) / 5
 
     total_reward /= 10
     return total_reward
@@ -112,6 +112,7 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     new_features = state_to_features(self, new_game_state)
 
     reward = 0
+    reward += 1 # agent survived
     reward += reward_from_events(self, events)
     reward += evaluate_reward(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
 
@@ -180,7 +181,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.round += 1
 
     with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round:.4f}\t {self.invalid_actions_per_round}\t {last_game_state['step']}\n")
+        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {(self.reward_per_round/last_game_state['step']):.4f}\t {self.invalid_actions_per_round}\n")
     self.reward_per_round = 0
     self.invalid_actions_per_round = 0
 
