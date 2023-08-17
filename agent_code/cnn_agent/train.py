@@ -33,7 +33,7 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = 5000
+    self.steps_per_copy = 2500
     self.train_iter = 0
     
     # for logging
@@ -51,10 +51,11 @@ def reward_from_events(self, events: List[str]) -> int:
 
     game_rewards = {
         e.INVALID_ACTION: -2.5, # invalid actions waste time
+        e.WAITED: -2.5, # need for pro-active agent
         e.CRATE_DESTROYED: 1,
         e.COIN_FOUND: 2,
-        e.COIN_COLLECTED: 10,
-        e.KILLED_OPPONENT: 50,
+        e.COIN_COLLECTED: 20,
+        e.KILLED_OPPONENT: 100,
         e.SURVIVED_ROUND: 1
     }
 
@@ -63,7 +64,7 @@ def reward_from_events(self, events: List[str]) -> int:
             total_reward += game_rewards[event]
 
     if e.KILLED_SELF or e.GOT_KILLED in events:
-        total_reward += -50
+        total_reward += -100
 
     total_reward /= 10
     return total_reward
@@ -80,10 +81,10 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
 
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
-        total_reward += ((new_bombs_rad[new_player_coord] - 4) * 2)
+        total_reward += ((new_bombs_rad[new_player_coord] - 3) * 2)
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
-        total_reward += ((old_bombs_rad[old_player_coord] - 4) * 2) * -1 * 0.75
+        total_reward += ((old_bombs_rad[old_player_coord] - 3) * 2) * -1 * 0.75
 
     # reward agent for getting close to nearest coin
     if self_action in MOVE_ACTIONS:
@@ -136,6 +137,8 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
         print(f"batch size increased to {self.batch_size}!")
 
     self.train_iter += 1
+
+    self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
     
 
 def end_of_round(self, last_game_state: dict, last_action: str, events: List[str]):
@@ -164,7 +167,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if self.train_iter % (self.steps_per_copy * 50) and self.batch_size < 512:
+    if self.train_iter % (self.steps_per_copy * 10) and self.batch_size < 512:
         self.batch_size *= 2
         print(f"batch size increased to {self.batch_size}!")
 
@@ -175,6 +178,8 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
         file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round:.4f}\t {self.invalid_actions_per_round}\n")
     self.reward_per_round = 0
     self.invalid_actions_per_round = 0
+
+    self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
 
 def update_params(self):
     if len(self.transitions) < self.batch_size:
