@@ -43,22 +43,25 @@ def setup_training(self):
         file.write("round\tscore\tkilled_self\n")
 
 def reward_from_events(self, events: List[str]) -> int:
+    total_reward = 0
+
     game_rewards = {
         e.INVALID_ACTION: -5, # invalid actions waste time
         e.CRATE_DESTROYED: 1,
         e.COIN_FOUND: 2,
         e.COIN_COLLECTED: 10,
         e.KILLED_OPPONENT: 50,
-        e.KILLED_SELF: -50,
-        e.GOT_KILLED: -50,
         e.SURVIVED_ROUND: 1
     }
-    reward_sum = 0
+
     for event in events:
         if event in game_rewards:
-            reward_sum += game_rewards[event]
-    self.logger.info(f"Awarded {reward_sum} for events {', '.join(events)}")
-    return (reward_sum / 10)
+            total_reward += game_rewards[event]
+
+    if e.KILLED_SELF or e.GOT_KILLED in events:
+        total_reward += -50
+
+    return (total_reward / 10)
 
 
 def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
@@ -112,8 +115,8 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     if self.train_iter % self.steps_per_round:
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-    # increase batch size after every ten rounds for dampening of fluctuations
-    # and faster convergence instead of decaying learning rate
+    # increase batch size after every n rounds for dampening of fluctuations
+    # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
     if self.train_iter % (self.steps_per_round * 10) and self.batch_size < 512:
         self.batch_size *= 2
 
@@ -139,7 +142,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     if self.train_iter % self.steps_per_round:
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-    # increase batch size after every ten rounds for dampening of fluctuations
+    # increase batch size after every n rounds for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
     if self.train_iter % (self.steps_per_round * 10) and self.batch_size < 512:
         self.batch_size *= 2
