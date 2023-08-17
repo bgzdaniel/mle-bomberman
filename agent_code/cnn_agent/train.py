@@ -37,9 +37,10 @@ def setup_training(self):
     self.train_iter = 0
     self.scores = []
     self.round = 0
+    self.reward_per_round = 0
 
     with open("score_per_round.txt", "w") as file:
-        file.write("training_iter\t round\t epsilon\t score\t killed_self\n")
+        file.write("training_iter\t round\t epsilon\t score\t killed_self\t reward_per_round\n")
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
@@ -106,6 +107,8 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     reward += reward_from_events(self, events)
     reward += evaluate_reward(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
 
+    self.reward_per_round += reward
+
     self.transitions.append(Transition(old_features, self.actions.index(self_action), new_features, reward))
     
     loss = update_params(self)
@@ -126,12 +129,11 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     score = last_game_state["self"][1]
     self.scores.append(score)
 
-    with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\n")
-
     last_features = state_to_features(self, last_game_state)
 
     reward = reward_from_events(self, events)
+
+    self.reward_per_round += reward
 
     self.transitions.append(Transition(last_features, self.actions.index(last_action), None, reward))
 
@@ -149,6 +151,9 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.train_iter += 1
     self.round += 1
 
+    with open("score_per_round.txt", "a") as file:
+        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {self.reward_per_round}\n")
+    self.reward_per_round = 0
 
 def update_params(self):
     if len(self.transitions) < self.batch_size:
