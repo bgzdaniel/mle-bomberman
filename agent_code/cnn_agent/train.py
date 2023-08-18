@@ -107,7 +107,7 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
         
         reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.7 # at most 0.7
         # weight reward depending on distance to nearest coin
-        reward_for_coin_proximity *= 1/(old_min_distance)**2
+        reward_for_coin_proximity *= 1/(new_min_distance)**2
 
         # if the agent moves directly toward a coin, this is the reward (negative if away from coin)
         # Distance:    15,     10,      5,      4,      3,      2,    1
