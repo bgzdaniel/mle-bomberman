@@ -41,7 +41,7 @@ def setup_training(self):
     # for logging
     self.round = 0
     self.loss_per_step = []
-    self.loss_per_step = []
+    self.reward_per_step = []
     self.invalid_actions_per_round = 0
     self.weights_copied_iter = 0
 
@@ -130,7 +130,7 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     reward += reward_from_actions(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
 
     reward /= 10
-    self.loss_per_step.append(reward)
+    self.reward_per_step.append(reward)
 
     if e.INVALID_ACTION in events:
         self.invalid_actions_per_round += 1
@@ -163,7 +163,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     reward = reward_from_events(self, events)
 
-    self.loss_per_step.append(reward)
+    self.reward_per_step.append(reward)
 
     if e.INVALID_ACTION in events:
         self.invalid_actions_per_round += 1
@@ -196,11 +196,11 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
                               score=last_game_state["self"][1], 
                               killed_self=killed_self, 
                               avg_loss_per_step=np.mean(self.loss_per_step), 
-                              avg_reward_per_step=np.mean(self.loss_per_step),
+                              avg_reward_per_step=np.mean(self.reward_per_step),
                               invalid_actions_per_round=self.invalid_actions_per_round)
 
     self.loss_per_step = []
-    self.loss_per_step = []
+    self.reward_per_step = []
     self.invalid_actions_per_round = 0
 
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
