@@ -158,5 +158,6 @@ def state_to_features(self, game_state: dict):
         others[others_coords[:, 0], others_coords[:, 1]] = others_bomb_action
 
     channels = [field, bombs, bombs_rad, explosion_map, coins, myself, others]
-    feature_maps = np.stack(channels, axis=0, dtype=np.float32)
+    #feature_maps = np.stack(channels, axis=0, dtype=np.float32) doesn't work on colab
+    feature_maps = np.stack(channels, axis=0).astype(np.float32)
     return feature_maps
