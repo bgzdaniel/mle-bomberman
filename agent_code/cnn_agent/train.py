@@ -59,7 +59,7 @@ def reward_from_events(self, events: List[str]) -> int:
         e.COIN_FOUND: 3,
         e.COIN_COLLECTED: 15,
         e.KILLED_OPPONENT: 75,
-        e.SURVIVED_ROUND: 75
+        e.SURVIVED_ROUND: 75 # note: the agent can only get this if you win the round or live until round 400
     }
 
     for event in events:
@@ -69,10 +69,9 @@ def reward_from_events(self, events: List[str]) -> int:
     if e.KILLED_SELF or e.GOT_KILLED in events:
         total_reward += -75
 
-    total_reward /= 10
     return total_reward
 
-def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
+def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
     total_reward = 0
 
     # get bomb coords and timers for whole radius and player coords
@@ -84,10 +83,16 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
     scaling = 3
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
+        # (3-4)*3 = -3 or (1-4)*3 = -9 (I think a good choice)
         total_reward += ((new_bombs_rad[new_player_coord] - 4) * scaling)
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
+        # (4-3)*3*-.25 = 0.75 or (4-1)*3*-.25 = 2.25 (this should be higher I think)
         total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * 0.25
+
+    # if the agent is the bomb radius it should ignore coins
+    if new_player_coord in new_bombs_rad:
+        return total_reward
 
     # reward agent for getting close to nearest coin
     if self_action in MOVE_ACTIONS:
@@ -101,9 +106,15 @@ def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
         
-        total_reward += (old_min_distance - new_min_distance) / 5
+        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.7 # at most 0.7
+        # weight reward depending on distance to nearest coin
+        reward_for_coin_proximity *= 1/(old_min_distance)**2
 
-    total_reward /= 10
+        # if the agent moves directly toward a coin, this is the reward (negative if away from coin)
+        # Distance:    15,     10,      5,      4,      3,      2,    1
+        # Reward:   0.003,  0.007,  0.028,  0.044,  0.078,  0.175,  0.7
+        total_reward += reward_for_coin_proximity
+
     return total_reward
 
     # TO-DO: reward agent for placing bombs which would hit other players and crates
@@ -114,10 +125,12 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     new_features = state_to_features(self, new_game_state)
 
     reward = 0
-    reward += 1 # agent survived
+    # we already reward the agent for doing stuff which implies survival :-D
+    #reward += 1 # agent survived
     reward += reward_from_events(self, events)
-    reward += evaluate_reward(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
+    reward += reward_from_actions(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
 
+    reward /= 10
     self.reward_per_round += reward
 
     if e.INVALID_ACTION in events:
@@ -181,8 +194,15 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.reward_per_round /= last_game_state['step']
     killed_self = e.KILLED_SELF in events
 
-    self.data_collector.write(self.train_iter, self.round, self.epsilon, score, self.loss_per_step, killed_self, self.reward_per_round, self.invalid_actions_per_round)
-    
+    self.data_collector.write(train_iter=self.train_iter, 
+                              round=self.round, 
+                              epsilon=self.epsilon, 
+                              score=score, 
+                              killed_self=killed_self, 
+                              avg_loss_per_step=self.loss_per_step, 
+                              avg_reward_per_step=self.reward_per_round, 
+                              invalid_actions_per_round=self.invalid_actions_per_round)
+
     self.reward_per_round = 0
     self.loss_per_step = 0
     self.invalid_actions_per_round = 0
