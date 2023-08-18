@@ -95,7 +95,7 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
     self.logger.debug(f"Reward for bombs: {total_reward}")
 
     # add reward if agents moves away from bomb
-    if len(old_game_state["bombs"]) > 0:
+    if len(old_game_state["bombs"]) > 0 & len(new_game_state["bombs"]) > 0:
         new_bomb_coords = np.array([bomb[0] for bomb in new_game_state["bombs"]])
         old_bomb_coords = np.array([bomb[0] for bomb in old_game_state["bombs"]])
         new_distance_to_bomb = np.linalg.norm(new_bomb_coords - np.array(new_player_coord)).min()
