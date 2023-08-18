@@ -173,3 +173,39 @@ def update(self):
     #    self.gradients.append(mean(value.grad.data.cpu().numpy()))
     self.optimizer.step()
 
+def plot(path):
+    path = '/content/mle-bomberman/agent_code/cnn_agent/score_per_round.txt'
+    with open(path, 'r') as f:
+        data = f.read()
+
+    data = data.split('\n')
+    data = [line.split('\t') for line in data]
+    data = data[:-1]
+
+    data = [line[3:] for line in data] # ignore iter, round, epsilon
+
+    # get labels from first line
+    labels = data[0]
+
+    # get data from other lines
+    data = data[1:]
+
+    # create plots
+    import matplotlib.pyplot as plt
+    import numpy as np
+    # create bar plots for each label
+    # create a plot with 5 subplots that plot the data
+    fig, axs = plt.subplots(5, 1, figsize=(10, 10))
+    fig.tight_layout(pad=3.0)
+
+
+    # add the asubplots to the plot
+    for i, label in enumerate(labels):
+        axs[i].set_title(label)
+        axs[i].set_xlabel('round')
+        axs[i].set_ylabel(label)
+        # fewer data points on y label for floats
+        axs[i].plot(np.array(data)[:, i])
+
+    plt.show()
+
