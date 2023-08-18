@@ -12,6 +12,7 @@ from typing import List
 
 import events as e
 from .callbacks import state_to_features, DqnNet, get_bomb_rad_dict
+from .utility import DataCollector
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 TRANSITION_HISTORY_SIZE = int(1e6)
@@ -45,8 +46,8 @@ def setup_training(self):
     self.invalid_actions_per_round = 0
     self.weights_copied_iter = 0
 
-    with open("score_per_round.txt", "w") as file:
-        file.write("training_iter\t round\t epsilon\t score\t avg_loss_per_step\t killed_self\t avg_reward_per_step\t invalid_actions_per_round\n")
+    self.data_collector = DataCollector("score_per_round.txt")
+    self.data_collector.initialize()
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
@@ -70,16 +71,6 @@ def reward_from_events(self, events: List[str]) -> int:
 
     total_reward /= 10
     return total_reward
-
-@nb.njit(fastmath=True,parallel=True,cache=True)
-def dist_1(mat,vec):
-    res=np.empty(mat.shape[0],dtype=mat.dtype)
-    for i in nb.prange(mat.shape[0]):
-        acc=0
-        for j in range(mat.shape[1]):
-            acc+=(mat[i,j]-vec[j])**2
-        res[i]=np.sqrt(acc)
-    return res
 
 def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
     total_reward = 0
@@ -141,15 +132,13 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.weights_copied_iter += 1
-        with open("score_per_round.txt", "a") as file:
-            file.write(f"weights copied to target net! ({self.weights_copied_iter} times)\n")
+        self.logger.debug(f"weights copied to target net! ({self.weights_copied_iter} times)\n")
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
     if (self.train_iter % (self.steps_per_copy * 10) == 0) and (self.batch_size < 512) and self.train_iter != 0:
         self.batch_size *= 2
-        with open("score_per_round.txt", "a") as file:
-            file.write(f"batch size increased to {self.batch_size}!\n")
+        self.logger.debug(f"batch size increased to {self.batch_size}!\n")
 
     self.train_iter += 1
 
@@ -178,21 +167,22 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.weights_copied_iter += 1
-        with open("score_per_round.txt", "a") as file:
-            file.write(f"weights copied to target net! ({self.weights_copied_iter} times)\n")
+        self.logger.debug(f"weights copied to target net! ({self.weights_copied_iter} times)\n")
 
     # increase batch size after every n steps for dampening of fluctuations
     # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
     if (self.train_iter % (self.steps_per_copy * 10) == 0) and (self.batch_size < 512) and self.train_iter != 0:
         self.batch_size *= 2
-        with open("score_per_round.txt", "a") as file:
-            file.write(f"batch size increased to {self.batch_size}!\n")
+        self.logger.debug(f"batch size increased to {self.batch_size}!\n")
 
     self.train_iter += 1
     self.round += 1
+    self.loss_per_step /=last_game_state['step']
+    self.reward_per_round /= last_game_state['step']
+    killed_self = e.KILLED_SELF in events
 
-    with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {(self.loss_per_step/last_game_state['step']):.4f}\t {e.KILLED_SELF in events}\t {(self.reward_per_round/last_game_state['step']):.4f}\t {self.invalid_actions_per_round}\n")
+    self.data_collector.write(self.train_iter, self.round, self.epsilon, score, self.loss_per_step, killed_self, self.reward_per_round, self.invalid_actions_per_round)
+    
     self.reward_per_round = 0
     self.loss_per_step = 0
     self.invalid_actions_per_round = 0
