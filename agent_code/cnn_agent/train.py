@@ -112,6 +112,7 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
 
     # reward agent for getting close to nearest coin
     if (self_action in MOVE_ACTIONS) and (e.COIN_COLLECTED not in events):
+        coin_reward = 0
         new_distances = []
         for coin_coord in new_game_state["coins"]:
             new_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(new_player_coord)))
@@ -121,12 +122,16 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
         for coin_coord in old_game_state["coins"]:
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
+        coin_reward += (old_min_distance - new_min_distance) * 0.2
         
-        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.25
+        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.2
         # weight reward depending on distance to nearest coin
         reward_for_coin_proximity *= 1/(new_min_distance)**2
-        total_reward += reward_for_coin_proximity
-        self.logger.debug(f"Reward for coins: {reward_for_coin_proximity}")
+        coin_reward += reward_for_coin_proximity
+
+        self.logger.debug(f"Reward for coins: {coin_reward}")
+
+        total_reward += coin_reward
 
     return total_reward
 
