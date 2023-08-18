@@ -44,6 +44,7 @@ def setup_training(self):
     self.reward_per_step = []
     self.invalid_actions_per_round = 0
     self.weights_copied_iter = 0
+    self.escaped_bombs = 0
 
     self.data_collector = DataCollector("score_per_round.txt")
     self.data_collector.initialize()
@@ -88,9 +89,21 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
         # (4-3)*3*-.25 = 0.75 or (4-1)*3*-.25 = 2.25 (this should be higher I think)
+        self.escaped_bombs += 1
         total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * 0.25
 
     self.logger.debug(f"Reward for bombs: {total_reward}")
+
+    # add reward if agents moves away from bomb
+    if len(old_game_state["bombs"]) > 0:
+        new_bomb_coords = np.array([bomb[0] for bomb in new_game_state["bombs"]])
+        old_bomb_coords = np.array([bomb[0] for bomb in old_game_state["bombs"]])
+        new_distance_to_bomb = np.linalg.norm(new_bomb_coords - np.array(new_player_coord)).min()
+        old_distance_to_bomb = np.linalg.norm(old_bomb_coords - np.array(old_player_coord)).min()
+        if new_distance_to_bomb > old_distance_to_bomb:
+            total_reward += 15
+            self.logger.debug(f"Reward for bomb escape: {15}")
+
 
     # if the agent is the bomb radius it should ignore coins
     if new_player_coord in new_bombs_rad:
@@ -170,7 +183,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     last_features = state_to_features(self, last_game_state)
 
-    reward = reward_from_events(self, events)
+    reward = reward_from_events(self, events) / 10
 
     self.reward_per_step.append(reward)
 
@@ -206,11 +219,14 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
                               killed_self=killed_self, 
                               avg_loss_per_step=np.mean(self.loss_per_step), 
                               avg_reward_per_step=np.mean(self.reward_per_step),
-                              invalid_actions_per_round=self.invalid_actions_per_round)
+                              invalid_actions_per_round=self.invalid_actions_per_round,
+                              escaped_bombs=self.escaped_bombs)
 
     self.loss_per_step = []
     self.reward_per_step = []
     self.invalid_actions_per_round = 0
+    self.escaped_bombs = 0
+    
 
     self.logger.debug(f"Total Reward: {reward}")
 
