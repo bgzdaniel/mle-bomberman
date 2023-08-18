@@ -41,12 +41,12 @@ def setup_training(self):
     self.scores = []
     self.round = 0
     self.reward_per_round = 0
-    self.loss_per_round = 0
+    self.loss_per_step = 0
     self.invalid_actions_per_round = 0
     self.weights_copied_iter = 0
 
     with open("score_per_round.txt", "w") as file:
-        file.write("training_iter\t round\t epsilon\t score\t avg_loss_per_round\t killed_self\t avg_reward_per_step\t invalid_actions_per_round\n")
+        file.write("training_iter\t round\t epsilon\t score\t avg_loss_per_step\t killed_self\t avg_reward_per_step\t invalid_actions_per_round\n")
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
@@ -231,7 +231,7 @@ def update_params(self):
 
     # calculate loss, gradients and backpropagate
     loss = self.loss_function(predictions, targets)
-    self.loss_per_round += loss.item()
+    self.loss_per_step += loss.item()
     self.optimizer.zero_grad()
     loss.backward()
     self.optimizer.step()
