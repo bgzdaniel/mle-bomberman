@@ -34,7 +34,7 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = 3000
+    self.steps_per_copy = 2500
     self.train_iter = 0
     
     # for logging
