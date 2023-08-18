@@ -214,6 +214,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
                               killed_self=killed_self, 
                               avg_loss_per_step=np.mean(self.loss_per_step), 
                               avg_reward_per_step=np.mean(self.reward_per_step),
+                              invalid_actions_per_round=self.invalid_actions_per_round,
                               avg_invalid_actions_per_step=avg_invalid_actions_per_step,
                               escaped_bombs=self.escaped_bombs)
 
