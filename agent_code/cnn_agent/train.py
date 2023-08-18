@@ -5,7 +5,6 @@ import torch
 from torch import nn
 from torch import optim
 import numpy as np
-import numba as nb
 
 import pickle
 from typing import List
@@ -53,13 +52,13 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -1, # invalid actions waste time
-        e.WAITED: -0.5, # need for pro-active agent
+        e.INVALID_ACTION: -0.5, # invalid actions waste time
+        e.WAITED: -0.25, # need for pro-active agent
         e.CRATE_DESTROYED: 2,
         e.COIN_FOUND: 3,
-        e.COIN_COLLECTED: 15,
-        e.KILLED_OPPONENT: 75,
-        e.SURVIVED_ROUND: 75 # note: the agent can only get this if you win the round or live until round 400
+        e.COIN_COLLECTED: 20,
+        e.KILLED_OPPONENT: 100,
+        e.SURVIVED_ROUND: 200 # note: the agent can only get this if you win the round or live until round 400
     }
 
     for event in events:
@@ -67,7 +66,7 @@ def reward_from_events(self, events: List[str]) -> int:
             total_reward += game_rewards[event]
 
     if e.KILLED_SELF in events or e.GOT_KILLED in events:
-        total_reward += -75
+        total_reward += -125
 
     self.logger.debug(f"Reward from events: {total_reward}")
     return total_reward
@@ -81,16 +80,14 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
-    scaling = 3
+    scaling = 5
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
-        # (3-4)*3 = -3 or (1-4)*3 = -9 (I think a good choice)
         total_reward += ((new_bombs_rad[new_player_coord] - 4) * scaling)
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
-        # (4-3)*3*-.25 = 0.75 or (4-1)*3*-.25 = 2.25 (this should be higher I think)
         self.escaped_bombs += 1
-        total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * 0.25
+        total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * 0.5
 
     self.logger.debug(f"Reward for bombs: {total_reward}")
 
@@ -106,13 +103,15 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
             self.logger.debug(f"Reward for bomb escape: {15}")
     """
 
+    # Daniel comment to below: I think this will prevent the agent from stepping into the bomb radius 
+    # to get to a coin and still escape the bombs explosion, which would be nice to have
 
-    # if the agent is the bomb radius it should ignore coins
-    if new_player_coord in new_bombs_rad:
-        return total_reward
+    # # if the agent is the bomb radius it should ignore coins
+    # if new_player_coord in new_bombs_rad:
+    #     return total_reward
 
     # reward agent for getting close to nearest coin
-    if self_action in MOVE_ACTIONS:
+    if (self_action in MOVE_ACTIONS) and (e.COIN_COLLECTED not in events):
         new_distances = []
         for coin_coord in new_game_state["coins"]:
             new_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(new_player_coord)))
@@ -123,13 +122,9 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
         
-        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.7 # at most 0.7
+        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.25
         # weight reward depending on distance to nearest coin
         reward_for_coin_proximity *= 1/(new_min_distance)**2
-
-        # if the agent moves directly toward a coin, this is the reward (negative if away from coin)
-        # Distance:    15,     10,      5,      4,      3,      2,    1
-        # Reward:   0.003,  0.007,  0.028,  0.044,  0.078,  0.175,  0.7
         total_reward += reward_for_coin_proximity
         self.logger.debug(f"Reward for coins: {reward_for_coin_proximity}")
 
@@ -146,8 +141,6 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     new_features = state_to_features(self, new_game_state)
 
     reward = 0
-    # we already reward the agent for doing stuff which implies survival :-D
-    #reward += 1 # agent survived
     reward += reward_from_events(self, events)
     reward += reward_from_actions(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
 
