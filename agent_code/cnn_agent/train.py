@@ -5,6 +5,7 @@ import torch
 from torch import nn
 from torch import optim
 import numpy as np
+import numba as nb
 
 import pickle
 from typing import List
@@ -40,11 +41,12 @@ def setup_training(self):
     self.scores = []
     self.round = 0
     self.reward_per_round = 0
+    self.loss_per_round = 0
     self.invalid_actions_per_round = 0
     self.weights_copied_iter = 0
 
     with open("score_per_round.txt", "w") as file:
-        file.write("training_iter\t round\t epsilon\t score\t killed_self\t avg_reward_per_step\t invalid_actions_per_round\n")
+        file.write("training_iter\t round\t epsilon\t score\t avg_loss_per_round\t killed_self\t avg_reward_per_step\t invalid_actions_per_round\n")
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
@@ -69,6 +71,15 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward /= 10
     return total_reward
 
+@nb.njit(fastmath=True,parallel=True,cache=True)
+def dist_1(mat,vec):
+    res=np.empty(mat.shape[0],dtype=mat.dtype)
+    for i in nb.prange(mat.shape[0]):
+        acc=0
+        for j in range(mat.shape[1]):
+            acc+=(mat[i,j]-vec[j])**2
+        res[i]=np.sqrt(acc)
+    return res
 
 def evaluate_reward(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
     total_reward = 0
@@ -181,8 +192,9 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.round += 1
 
     with open("score_per_round.txt", "a") as file:
-        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {e.KILLED_SELF in events}\t {(self.reward_per_round/last_game_state['step']):.4f}\t {self.invalid_actions_per_round}\n")
+        file.write(f"{self.train_iter}\t {self.round}\t {self.epsilon:.4f}\t {score}\t {(self.loss_per_step/last_game_state['step']):.4f}\t {e.KILLED_SELF in events}\t {(self.reward_per_round/last_game_state['step']):.4f}\t {self.invalid_actions_per_round}\n")
     self.reward_per_round = 0
+    self.loss_per_step = 0
     self.invalid_actions_per_round = 0
 
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
@@ -219,6 +231,7 @@ def update_params(self):
 
     # calculate loss, gradients and backpropagate
     loss = self.loss_function(predictions, targets)
+    self.loss_per_round += loss.item()
     self.optimizer.zero_grad()
     loss.backward()
     self.optimizer.step()
