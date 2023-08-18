@@ -65,9 +65,10 @@ def reward_from_events(self, events: List[str]) -> int:
         if event in game_rewards:
             total_reward += game_rewards[event]
 
-    if e.KILLED_SELF or e.GOT_KILLED in events:
+    if e.KILLED_SELF in events or e.GOT_KILLED in events:
         total_reward += -75
 
+    self.logger.debug(f"Reward from events: {total_reward}")
     return total_reward
 
 def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
@@ -88,6 +89,8 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
         # (4-3)*3*-.25 = 0.75 or (4-1)*3*-.25 = 2.25 (this should be higher I think)
         total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * 0.25
+
+    self.logger.debug(f"Reward for bombs: {total_reward}")
 
     # if the agent is the bomb radius it should ignore coins
     if new_player_coord in new_bombs_rad:
@@ -113,6 +116,7 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
         # Distance:    15,     10,      5,      4,      3,      2,    1
         # Reward:   0.003,  0.007,  0.028,  0.044,  0.078,  0.175,  0.7
         total_reward += reward_for_coin_proximity
+        self.logger.debug(f"Reward for coins: {reward_for_coin_proximity}")
 
     return total_reward
 
@@ -120,6 +124,9 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
 
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
+    
+    self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
+
     old_features = state_to_features(self, old_game_state)
     new_features = state_to_features(self, new_game_state)
 
@@ -154,10 +161,12 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
 
     self.train_iter += 1
 
-    self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
+    self.logger.debug(f"Total Reward: {reward}")
     
 
 def end_of_round(self, last_game_state: dict, last_action: str, events: List[str]):
+
+    self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
 
     last_features = state_to_features(self, last_game_state)
 
@@ -203,7 +212,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.reward_per_step = []
     self.invalid_actions_per_round = 0
 
-    self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
+    self.logger.debug(f"Total Reward: {reward}")
 
 def update_params(self):
     if len(self.transitions) < self.batch_size:
