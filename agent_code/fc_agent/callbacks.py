@@ -55,18 +55,16 @@ def setup(self):
     self.myself_dim = 5
     self.other_dim = 6
 
-    if self.train or not os.path.isfile("fc_agent_model.pt"): 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f'Using device: {self.device}\n')
+    
+    if self.train or not os.path.isfile("fc_agent_model.pth"): 
         self.policy_net = DqnNet(self).to(self.device)
     else:
-        with open("fc_agent_model.pt", "rb") as file:
-            # not sure if this is correct
-            self.target_net = pickle.load(file)
-            self.policy_net = pickle.load(file)
-        self.device = torch.device("cpu")
+        self.target_net = torch.load("fc_agent_model.pth", map_location=self.device)
+        self.policy_net = torch.load("fc_agent_model.pth", map_location=self.device)
+        
     
-    print('Using device:', self.device)
-    print()
 
 
     rb_setup(self)

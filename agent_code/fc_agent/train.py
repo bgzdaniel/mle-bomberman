@@ -52,11 +52,12 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -0.5, # invalid actions waste time
-        e.WAITED: -0.25, # need for pro-active agent
-        e.CRATE_DESTROYED: 2,
-        e.COIN_FOUND: 3,
+        e.INVALID_ACTION: -5, # invalid actions waste time
+        e.WAITED: -2.5, # need for pro-active agent
+        e.CRATE_DESTROYED: 10,
+        e.COIN_FOUND: 15,
         e.COIN_COLLECTED: 20,
+        e.BOMB_DROPPED: 5,
         e.KILLED_OPPONENT: 100,
         e.SURVIVED_ROUND: 200 # note: the agent can only get this if you win the round or live until round 400
     }
@@ -229,9 +230,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.escaped_bombs = 0
 
     if self.round % 500:
-        with open("fc_agent_model.pt", "wb") as file:
-            pickle.dump(self.target_net, file)
-    
+        torch.save(self.target_net, 'fc_agent_model.pth')
 
     self.logger.debug(f"Total Reward: {reward}")
 
