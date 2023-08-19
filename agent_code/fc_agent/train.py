@@ -230,7 +230,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     if self.round % 500:
         with open("fc_agent_model.pt", "wb") as file:
-            pickle.dump(self.model, file)
+            pickle.dump(self.target_net, file)
     
 
     self.logger.debug(f"Total Reward: {reward}")

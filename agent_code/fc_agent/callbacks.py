@@ -60,6 +60,8 @@ def setup(self):
         self.policy_net = DqnNet(self).to(self.device)
     else:
         with open("fc_agent_model.pt", "rb") as file:
+            # not sure if this is correct
+            self.target_net = pickle.load(file)
             self.policy_net = pickle.load(file)
         self.device = torch.device("cpu")
     
