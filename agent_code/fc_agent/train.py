@@ -58,8 +58,12 @@ def reward_from_events(self, events: List[str]) -> int:
         e.COIN_FOUND: 15,
         e.COIN_COLLECTED: 20,
         e.BOMB_DROPPED: 5,
-        e.KILLED_OPPONENT: 100,
-        e.SURVIVED_ROUND: 200 # note: the agent can only get this if you win the round or live until round 400
+        e.KILLED_OPPONENT: 30,
+        e.MOVED_LEFT: .25,
+        e.MOVED_RIGHT: .25,
+        e.MOVED_UP: .25,
+        e.MOVED_DOWN: .25
+        #e.SURVIVED_ROUND: 200 # note: the agent can only get this if you win the round or live until round 400
     }
 
     for event in events:
@@ -67,7 +71,8 @@ def reward_from_events(self, events: List[str]) -> int:
             total_reward += game_rewards[event]
 
     if e.KILLED_SELF in events or e.GOT_KILLED in events:
-        total_reward += -125
+        # nothing else should give reward if the agent dies
+        total_reward = -30
 
     self.logger.debug(f"Reward from events: {total_reward}")
     return total_reward
@@ -92,7 +97,7 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
 
     self.logger.debug(f"Reward for bombs: {total_reward}")
 
-    """
+
     # add reward if agents moves away from bomb
     if len(old_game_state["bombs"]) > 0 & len(new_game_state["bombs"]) > 0:
         new_bomb_coords = np.array([bomb[0] for bomb in new_game_state["bombs"]])
@@ -102,7 +107,6 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
         if new_distance_to_bomb > old_distance_to_bomb:
             total_reward += 15
             self.logger.debug(f"Reward for bomb escape: {15}")
-    """
 
     # Daniel comment to below: I think this will prevent the agent from stepping into the bomb radius 
     # to get to a coin and still escape the bombs explosion, which would be nice to have
