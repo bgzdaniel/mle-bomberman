@@ -73,16 +73,16 @@ def act(self, game_state: dict) -> str:
     if self.train == True:
         rand = random.random()
         if rand <= self.epsilon:
-            #action = random.randint(0, len(self.actions)-1)
-            #select action from rule based agent
+            action = random.randint(0, len(self.actions)-1)
             if self.epsilon > self.epsilon_end:
                 self.epsilon *= self.epsilon_decay
             else:
                 self.epsilon = self.epsilon_end
             action = rb_act(self, game_state)
-            if action is None:
-                self.logger.info(f"Agent action None")
-            return action
+            #select action from rule based agent
+            #if action is None:
+            #    action = 'WAIT'
+            #return action
         else:
             with torch.no_grad():
                 features = torch.from_numpy(features).to(self.device)[None]

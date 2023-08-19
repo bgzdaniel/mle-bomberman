@@ -111,7 +111,7 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
     #     return total_reward
 
     # reward agent for getting close to nearest coin
-    if (self_action in MOVE_ACTIONS) and (e.COIN_COLLECTED not in events):
+    if (self_action in MOVE_ACTIONS) and (e.COIN_COLLECTED not in events) and len(new_game_state['coins']) > 0 and len(old_game_state['coins']) > 0:
         coin_reward = 0
         new_distances = []
         for coin_coord in new_game_state["coins"]:
