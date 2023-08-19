@@ -55,15 +55,17 @@ def setup(self):
     self.myself_dim = 5
     self.other_dim = 6
 
-    if self.train == True:        
+    if self.train or not os.path.isfile("fc_agent_model.pt"): 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.policy_net = DqnNet(self).to(self.device)
     else:
+        with open("fc_agent_model.pt", "rb") as file:
+            self.policy_net = pickle.load(file)
         self.device = torch.device("cpu")
     
     print('Using device:', self.device)
     print()
 
-    self.policy_net = DqnNet(self).to(self.device)
 
     rb_setup(self)
 
@@ -78,8 +80,8 @@ def act(self, game_state: dict) -> str:
                 self.epsilon *= self.epsilon_decay
             else:
                 self.epsilon = self.epsilon_end
-            action = rb_act(self, game_state)
             #select action from rule based agent
+            #action = rb_act(self, game_state)
             #if action is None:
             #    action = 'WAIT'
             #return action

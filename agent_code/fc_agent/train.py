@@ -227,6 +227,10 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.reward_per_step = []
     self.invalid_actions_per_round = 0
     self.escaped_bombs = 0
+
+    if self.round % 500:
+        with open("fc_agent_model.pt", "wb") as file:
+            pickle.dump(self.model, file)
     
 
     self.logger.debug(f"Total Reward: {reward}")
