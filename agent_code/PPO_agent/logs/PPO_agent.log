@@ -1,0 +1,398 @@
+2023-08-20 19:09:06,192 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_RIGHT' in step 1
+2023-08-20 19:09:06,193 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:06,194 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:06,958 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_RIGHT' in step 2
+2023-08-20 19:09:06,958 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:06,959 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:07,006 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 3
+2023-08-20 19:09:07,007 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:07,007 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:07,029 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 4
+2023-08-20 19:09:07,030 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:07,031 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:07,213 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 5
+2023-08-20 19:09:07,214 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:07,215 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:07,297 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_LEFT' in step 6
+2023-08-20 19:09:07,297 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:07,298 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:07,392 [PPO_agent_code] DEBUG: Encountered event(s) 'INVALID_ACTION', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:07,392 [PPO_agent_code] DEBUG: Reward from events: -117.5
+2023-08-20 19:09:07,863 [PPO_agent_code] DEBUG: Total Reward: -11.75
+2023-08-20 19:09:08,018 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 1
+2023-08-20 19:09:08,018 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:08,018 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:09,380 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 2
+2023-08-20 19:09:09,380 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:09,381 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:09,496 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_RIGHT' in step 3
+2023-08-20 19:09:09,497 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:09,497 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:09,525 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_LEFT' in step 4
+2023-08-20 19:09:09,526 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:09,526 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:09,575 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_RIGHT' in step 5
+2023-08-20 19:09:09,576 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:09,576 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:09,613 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 6
+2023-08-20 19:09:09,613 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:09,613 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:09,647 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 7
+2023-08-20 19:09:09,648 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:09,648 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:09,684 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_LEFT' in step 8
+2023-08-20 19:09:09,684 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:09,684 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:09,684 [PPO_agent_code] DEBUG: Reward for coins: -0.035308488337905265
+2023-08-20 19:09:09,707 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 9
+2023-08-20 19:09:09,708 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:09,708 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:09,744 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 10
+2023-08-20 19:09:09,745 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:09,745 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:09,745 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:09,807 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'CRATE_DESTROYED' in step 11
+2023-08-20 19:09:09,808 [PPO_agent_code] DEBUG: Reward from events: 4
+2023-08-20 19:09:09,808 [PPO_agent_code] DEBUG: Reward for bombs: 10.0
+2023-08-20 19:09:09,809 [PPO_agent_code] DEBUG: Reward for coins: 0.19632820544702634
+2023-08-20 19:09:09,846 [PPO_agent_code] DEBUG: Encountered event(s) 'MOVED_UP', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:09,846 [PPO_agent_code] DEBUG: Reward from events: -125
+2023-08-20 19:09:10,035 [PPO_agent_code] DEBUG: Total Reward: -12.5
+2023-08-20 19:09:10,378 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 1
+2023-08-20 19:09:10,379 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:10,379 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:12,593 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 2
+2023-08-20 19:09:12,593 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:12,594 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:12,613 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 3
+2023-08-20 19:09:12,614 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:12,614 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:12,646 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 4
+2023-08-20 19:09:12,647 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:12,647 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:12,699 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 5
+2023-08-20 19:09:12,700 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:12,700 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:12,762 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 6
+2023-08-20 19:09:12,762 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:12,762 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:12,793 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 7
+2023-08-20 19:09:12,793 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:12,793 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:12,925 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 8
+2023-08-20 19:09:12,926 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:12,926 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:12,995 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 9
+2023-08-20 19:09:12,995 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:12,996 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:13,043 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 10
+2023-08-20 19:09:13,044 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:13,044 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:13,179 [PPO_agent_code] DEBUG: Encountered event(s) 'INVALID_ACTION', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:13,181 [PPO_agent_code] DEBUG: Reward from events: -123.5
+2023-08-20 19:09:13,556 [PPO_agent_code] DEBUG: Total Reward: -12.35
+2023-08-20 19:09:13,855 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 1
+2023-08-20 19:09:13,856 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:13,856 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:15,614 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 2
+2023-08-20 19:09:15,614 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:15,615 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:15,664 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 3
+2023-08-20 19:09:15,665 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:15,665 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:15,723 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 4
+2023-08-20 19:09:15,723 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:15,724 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:15,768 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 5
+2023-08-20 19:09:15,768 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:15,772 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:15,806 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 6
+2023-08-20 19:09:15,807 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:15,807 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:15,850 [PPO_agent_code] DEBUG: Encountered event(s) 'INVALID_ACTION', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:15,850 [PPO_agent_code] DEBUG: Reward from events: -117.5
+2023-08-20 19:09:16,039 [PPO_agent_code] DEBUG: Total Reward: -11.75
+2023-08-20 19:09:16,141 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 1
+2023-08-20 19:09:16,141 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:16,141 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:17,793 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_RIGHT' in step 2
+2023-08-20 19:09:17,793 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:17,794 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:17,822 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 3
+2023-08-20 19:09:17,823 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:17,823 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:17,847 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 4
+2023-08-20 19:09:17,848 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:17,848 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:17,913 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 5
+2023-08-20 19:09:17,914 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:17,914 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:17,942 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 6
+2023-08-20 19:09:17,942 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:17,942 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:17,984 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_LEFT' in step 7
+2023-08-20 19:09:17,985 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:17,985 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:17,985 [PPO_agent_code] DEBUG: Reward for coins: -0.12729231119937218
+2023-08-20 19:09:18,014 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 8
+2023-08-20 19:09:18,015 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:18,015 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,015 [PPO_agent_code] DEBUG: Reward for coins: 0.14993407738807396
+2023-08-20 19:09:18,061 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 9
+2023-08-20 19:09:18,062 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:18,062 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,062 [PPO_agent_code] DEBUG: Reward for coins: -0.14989615850375887
+2023-08-20 19:09:18,111 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 10
+2023-08-20 19:09:18,111 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:18,112 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,112 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:18,160 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 11
+2023-08-20 19:09:18,161 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:18,161 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,162 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:18,241 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 12
+2023-08-20 19:09:18,241 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:18,242 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,242 [PPO_agent_code] DEBUG: Reward for coins: 0.14993407738807396
+2023-08-20 19:09:18,292 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 13
+2023-08-20 19:09:18,293 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:18,293 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,312 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 14
+2023-08-20 19:09:18,313 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:18,314 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,340 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 15
+2023-08-20 19:09:18,341 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:18,341 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,341 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:18,375 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 16
+2023-08-20 19:09:18,375 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:18,375 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,376 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:18,400 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 17
+2023-08-20 19:09:18,400 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:18,400 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,426 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 18
+2023-08-20 19:09:18,426 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:18,426 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,427 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:18,464 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 19
+2023-08-20 19:09:18,465 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:18,465 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,466 [PPO_agent_code] DEBUG: Reward for coins: -0.12729231119937218
+2023-08-20 19:09:18,673 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 20
+2023-08-20 19:09:18,673 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:18,673 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,673 [PPO_agent_code] DEBUG: Reward for coins: 0.12731939542148366
+2023-08-20 19:09:18,741 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 21
+2023-08-20 19:09:18,742 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:18,742 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:18,743 [PPO_agent_code] DEBUG: Reward for coins: -0.12729231119937218
+2023-08-20 19:09:21,496 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 22
+2023-08-20 19:09:21,496 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:21,496 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:21,528 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 23
+2023-08-20 19:09:21,528 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:21,529 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:21,529 [PPO_agent_code] DEBUG: Reward for coins: 0.12731939542148366
+2023-08-20 19:09:21,557 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 24
+2023-08-20 19:09:21,557 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:21,558 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:21,588 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 25
+2023-08-20 19:09:21,589 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:21,589 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:21,618 [PPO_agent_code] DEBUG: Encountered event(s) 'INVALID_ACTION', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:21,618 [PPO_agent_code] DEBUG: Reward from events: -119.5
+2023-08-20 19:09:21,826 [PPO_agent_code] DEBUG: Total Reward: -11.95
+2023-08-20 19:09:22,175 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 1
+2023-08-20 19:09:22,176 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:22,176 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:23,014 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_RIGHT' in step 2
+2023-08-20 19:09:23,015 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:23,015 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:23,098 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 3
+2023-08-20 19:09:23,099 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:23,100 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:23,181 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_LEFT' in step 4
+2023-08-20 19:09:23,182 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:23,183 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:23,299 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 5
+2023-08-20 19:09:23,300 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:23,300 [PPO_agent_code] DEBUG: Reward for bombs: 5.0
+2023-08-20 19:09:23,502 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 6
+2023-08-20 19:09:23,504 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:23,504 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:23,530 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'CRATE_DESTROYED' in step 7
+2023-08-20 19:09:23,532 [PPO_agent_code] DEBUG: Reward from events: 6
+2023-08-20 19:09:23,533 [PPO_agent_code] DEBUG: Reward for bombs: 10.0
+2023-08-20 19:09:23,533 [PPO_agent_code] DEBUG: Reward for coins: 0.15555604662895883
+2023-08-20 19:09:23,640 [PPO_agent_code] DEBUG: Encountered event(s) 'MOVED_UP', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:23,641 [PPO_agent_code] DEBUG: Reward from events: -125
+2023-08-20 19:09:23,842 [PPO_agent_code] DEBUG: Total Reward: -12.5
+2023-08-20 19:09:23,966 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 1
+2023-08-20 19:09:23,966 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:23,967 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:25,650 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 2
+2023-08-20 19:09:25,651 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:25,652 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:25,680 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 3
+2023-08-20 19:09:25,680 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:25,681 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:25,741 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_RIGHT' in step 4
+2023-08-20 19:09:25,742 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:25,742 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:25,780 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 5
+2023-08-20 19:09:25,782 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:25,782 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:25,831 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 6
+2023-08-20 19:09:25,832 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:25,833 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:25,874 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_LEFT' in step 7
+2023-08-20 19:09:25,875 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:25,875 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:25,909 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 8
+2023-08-20 19:09:25,910 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:25,910 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:25,973 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 9
+2023-08-20 19:09:25,974 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:25,974 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:25,999 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 10
+2023-08-20 19:09:26,000 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:26,000 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:26,029 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 11
+2023-08-20 19:09:26,029 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:26,029 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:26,063 [PPO_agent_code] DEBUG: Encountered event(s) 'INVALID_ACTION', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'COIN_FOUND', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:26,064 [PPO_agent_code] DEBUG: Reward from events: -118.5
+2023-08-20 19:09:26,265 [PPO_agent_code] DEBUG: Total Reward: -11.85
+2023-08-20 19:09:26,419 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 1
+2023-08-20 19:09:26,420 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:26,420 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:28,824 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 2
+2023-08-20 19:09:28,824 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:28,824 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:28,840 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 3
+2023-08-20 19:09:28,841 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:28,841 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:28,863 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 4
+2023-08-20 19:09:28,864 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:28,864 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:28,913 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 5
+2023-08-20 19:09:28,913 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:28,913 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:28,941 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 6
+2023-08-20 19:09:28,942 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:28,942 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:28,996 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_RIGHT' in step 7
+2023-08-20 19:09:28,997 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:28,997 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:28,997 [PPO_agent_code] DEBUG: Reward for coins: 0.12731939542148366
+2023-08-20 19:09:29,030 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 8
+2023-08-20 19:09:29,030 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:29,031 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:29,031 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:29,058 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 9
+2023-08-20 19:09:29,059 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:29,059 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:29,059 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:29,079 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_LEFT' in step 10
+2023-08-20 19:09:29,080 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:29,080 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:29,080 [PPO_agent_code] DEBUG: Reward for coins: -0.12729231119937218
+2023-08-20 19:09:29,103 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 11
+2023-08-20 19:09:29,104 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:29,105 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:29,304 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 12
+2023-08-20 19:09:29,305 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:29,306 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:29,306 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:29,343 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 13
+2023-08-20 19:09:29,344 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:29,344 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:29,345 [PPO_agent_code] DEBUG: Reward for coins: 0.0
+2023-08-20 19:09:29,493 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 14
+2023-08-20 19:09:29,494 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:29,494 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:29,494 [PPO_agent_code] DEBUG: Reward for coins: 1.2883229972770316
+2023-08-20 19:09:29,532 [PPO_agent_code] DEBUG: Encountered event(s) 'INVALID_ACTION', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'COIN_FOUND', 'CRATE_DESTROYED', 'COIN_FOUND', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:29,532 [PPO_agent_code] DEBUG: Reward from events: -111.5
+2023-08-20 19:09:29,746 [PPO_agent_code] DEBUG: Total Reward: -11.15
+2023-08-20 19:09:29,946 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 1
+2023-08-20 19:09:29,946 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:29,947 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:32,360 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 2
+2023-08-20 19:09:32,361 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:32,361 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:32,382 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 3
+2023-08-20 19:09:32,383 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:32,383 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:32,408 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 4
+2023-08-20 19:09:32,408 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:32,408 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:32,446 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 5
+2023-08-20 19:09:32,447 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:32,447 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:32,489 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 6
+2023-08-20 19:09:32,489 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:32,490 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:32,507 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 7
+2023-08-20 19:09:32,507 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:32,507 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:32,560 [PPO_agent_code] DEBUG: Encountered event(s) 'MOVED_DOWN', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:32,561 [PPO_agent_code] DEBUG: Reward from events: -123
+2023-08-20 19:09:32,766 [PPO_agent_code] DEBUG: Total Reward: -12.3
+2023-08-20 19:09:32,877 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_UP' in step 1
+2023-08-20 19:09:32,878 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:32,878 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:34,610 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 2
+2023-08-20 19:09:34,611 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:34,611 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:34,645 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 3
+2023-08-20 19:09:34,646 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:34,646 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:34,723 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 4
+2023-08-20 19:09:34,723 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:34,724 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:34,792 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 5
+2023-08-20 19:09:34,793 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:34,793 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:34,823 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 6
+2023-08-20 19:09:34,824 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:34,824 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:34,875 [PPO_agent_code] DEBUG: Encountered game event(s) 'WAITED' in step 7
+2023-08-20 19:09:34,875 [PPO_agent_code] DEBUG: Reward from events: -0.25
+2023-08-20 19:09:34,875 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:34,908 [PPO_agent_code] DEBUG: Encountered game event(s) 'BOMB_DROPPED' in step 8
+2023-08-20 19:09:34,909 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:34,909 [PPO_agent_code] DEBUG: Reward for bombs: -5
+2023-08-20 19:09:34,948 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 9
+2023-08-20 19:09:34,948 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:34,948 [PPO_agent_code] DEBUG: Reward for bombs: -10
+2023-08-20 19:09:34,971 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 10
+2023-08-20 19:09:34,972 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:34,972 [PPO_agent_code] DEBUG: Reward for bombs: -15
+2023-08-20 19:09:35,010 [PPO_agent_code] DEBUG: Encountered game event(s) 'MOVED_DOWN' in step 11
+2023-08-20 19:09:35,010 [PPO_agent_code] DEBUG: Reward from events: 0
+2023-08-20 19:09:35,011 [PPO_agent_code] DEBUG: Reward for bombs: -20
+2023-08-20 19:09:35,066 [PPO_agent_code] DEBUG: Encountered event(s) 'INVALID_ACTION', 'BOMB_EXPLODED', 'CRATE_DESTROYED', 'CRATE_DESTROYED', 'COIN_FOUND', 'KILLED_SELF', 'GOT_KILLED' in final step
+2023-08-20 19:09:35,067 [PPO_agent_code] DEBUG: Reward from events: -118.5
+2023-08-20 19:09:35,264 [PPO_agent_code] DEBUG: Total Reward: -11.85
+2023-08-20 19:09:35,437 [PPO_agent_code] DEBUG: Encountered game event(s) 'INVALID_ACTION' in step 1
+2023-08-20 19:09:35,438 [PPO_agent_code] DEBUG: Reward from events: -0.5
+2023-08-20 19:09:35,438 [PPO_agent_code] DEBUG: Reward for bombs: 0
+2023-08-20 19:09:35,649 [PPO_agent_wrapper] ERROR: 
+Traceback (most recent call last):
+  File "C:\Users\Maximilian\Desktop\bomberman_rl\agents.py", line 248, in process_event
+    event_result = getattr(module, event_name)(self.fake_self, *event_args)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Maximilian\Desktop\bomberman_rl\agent_code\PPO_agent\train.py", line 104, in game_events_occurred
+    total_loss = self.agent.learn() #learning für den agent aus models.py
+                 ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Maximilian\Desktop\bomberman_rl\agent_code\PPO_agent\models.py", line 238, in learn
+    new_probs = distribution.log_prob(actions_tensor)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Maximilian\anaconda3\envs\ml_homework\Lib\site-packages\torch\distributions\categorical.py", line 123, in log_prob
+    self._validate_sample(value)
+  File "C:\Users\Maximilian\anaconda3\envs\ml_homework\Lib\site-packages\torch\distributions\distribution.py", line 299, in _validate_sample
+    if not valid.all():
+           ^^^^^^^^^^^
+KeyboardInterrupt
