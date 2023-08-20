@@ -1,211 +1,311 @@
 from collections import namedtuple, deque
+import random
+
+import torch
 from torch import nn
 from torch import optim
 import numpy as np
-import torch
-from typing import List
-import matplotlib.pyplot as plt
 
+import pickle
+from typing import List
 
 import events as e
-from .callbacks import state_to_features, ACTIONS
-from .replay_memory import ReplayMemory
-from .hyperparameters import hp
-from .resources import Transition
+from .callbacks import state_to_features, DqnNet, get_bomb_rad_dict
+from .utility import DataCollector
 
-# Hyper parameters -- DO modify
-TRANSITION_HISTORY_SIZE = 3  # keep only ... last transitions
-RECORD_ENEMY_TRANSITIONS = 1.0  # record enemy transitions with probability ...
+Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
+TRANSITION_HISTORY_SIZE = int(1e6)
+DISCOUNT = 0.9
 
-# Events
-PLACEHOLDER_EVENT = "PLACEHOLDER"
+MOVE_ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT']
+
+def sample(self, batch_size):
+    weights = []
+    for replay in self.transitions:
+        weight = 1 if type(replay.next_state) is np.ndarray else 5
+        weights.append(weight)
+    return random.choices(self.transitions, weights=weights, k=batch_size)
 
 
 def setup_training(self):
-    """
-    Initialise self for training purpose.
-
-    This is called after `setup` in callbacks.py.
-
-    :param self: This object is passed to all callbacks and you can set arbitrary values.
-    """
-    # Example: Setup an array that will note transition tuples
-    # (s, a, r, s')
+    self.batch_size = 32
+    self.target_net = DqnNet(self).to(self.device)
+    self.target_net.load_state_dict(self.policy_net.state_dict())
+    self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
+    self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-
-    # data collection to monitor training progress
+    self.steps_per_copy = 2500
+    self.train_iter = 0
+    
+    # for logging
     self.round = 0
-    self.loss_all_rounds = []
-    self.loss_per_round = []
-    self.score = []
-    self.gradients = []
-    
-    # initialize replay memory
-    self.memory = ReplayMemory(hp.memory_size, hp.batch_size, self.device)
+    self.loss_per_step = []
+    self.reward_per_step = []
+    self.invalid_actions_per_round = 0
+    self.weights_copied_iter = 0
+    self.escaped_bombs = 0
 
-    # initialize loss and optimizer
-    self.loss_object = nn.SmoothL1Loss()
-    self.loss = 0
-    self.optimizer = optim.AdamW(self.q_network.parameters(), lr=1e-4, amsgrad=True)
+    self.data_collector = DataCollector("score_per_round.txt")
+    self.data_collector.initialize()
 
-    
+def reward_from_events(self, events: List[str]) -> int:
+    total_reward = 0
 
-def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
-    """
-    Called once per step to allow intermediate rewards based on game events.
-
-    When this method is called, self.events will contain a list of all game
-    events relevant to your agent that occurred during the previous step. Consult
-    settings.py to see what events are tracked. You can hand out rewards to your
-    agent based on these events and your knowledge of the (new) game state.
-
-    This is *one* of the places where you could update your agent.
-
-    :param self: This object is passed to all callbacks and you can set arbitrary values.
-    :param old_game_state: The state that was passed to the last call of `act`.
-    :param self_action: The action that you took.
-    :param new_game_state: The state the agent is in now.
-    :param events: The events that occurred when going from  `old_game_state` to `new_game_state`
-    """
-    self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
-
-    # Idea: Add your own events to hand out rewards
-    #if ...:
-    #    events.append(PLACEHOLDER_EVENT)
-    
-    current_transition = Transition(state_to_features(old_game_state),
-                                    action_to_number(self_action),
-                                    state_to_features(new_game_state),
-                                    reward_from_events(self, events))
-    self.transitions.append(current_transition)
-    if current_transition.state is not None:
-        self.memory.push(current_transition)
-
-    # only update every n steps?
-    if new_game_state["step"] % hp.update_frequency == 0:
-        update(self)
-
-        # store the model in the target network (use weights?)
-        q_network_state_dict = self.q_network.state_dict()
-        self.target_network.load_state_dict(q_network_state_dict)
-
-
-def end_of_round(self, last_game_state: dict, last_action: str, events: List[str]):
-    """
-    Called at the end of each game or when the agent died to hand out final rewards.
-    This replaces game_events_occurred in this round.
-
-    This is similar to game_events_occurred. self.events will contain all events that
-    occurred during your agent's final step.
-
-    This is *one* of the places where you could update your agent.
-    This is also a good place to store an agent that you updated.
-
-    :param self: The same object that is passed to all of your callbacks.
-    """
-    self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
-    self.transitions.append(Transition(state_to_features(last_game_state), last_action, None, reward_from_events(self, events)))
-
-    self.loss_all_rounds.append(np.mean(self.loss_per_round))
-    self.score.append(last_game_state["self"][1])
-    self.round += 1
-
-    if self.round == 500:
-        plt.bar(range(len(self.loss_all_rounds)), self.loss_all_rounds, color='blue')
-        plt.savefig("loss.png")
-        plt.close()
-
-        plt.bar(range(len(self.score)), self.score, color='blue')
-        plt.savefig("score.png")
-        plt.close()
-
-    
-
-def reward_from_events(self, events: List[str]) -> torch.tensor:
-    """
-    Rewards agent to navigate field (navigate field, destroy crates, collects coins, don't die)
-    """
     game_rewards = {
-        e.COIN_COLLECTED: 5,
-        e.KILLED_OPPONENT: 5,
-        e.CRATE_DESTROYED: 0.5,
-        e.KILLED_SELF: -10,
-        e.INVALID_ACTION: -1,
-        e.WAITED: -0.5,
-        e.SURVIVED_ROUND: 0.5,
-        e.MOVED_DOWN: 0.1,
-        e.MOVED_UP: 0.1,
-        e.MOVED_RIGHT: 0.1,
-        e.MOVED_LEFT: 0.1,
+        e.INVALID_ACTION: -5, # invalid actions waste time
+        e.WAITED: -2.5, # need for pro-active agent
+        e.CRATE_DESTROYED: 10,
+        e.COIN_FOUND: 15,
+        e.COIN_COLLECTED: 20,
+        e.BOMB_DROPPED: 5,
+        e.KILLED_OPPONENT: 30,
+        e.MOVED_LEFT: .25,
+        e.MOVED_RIGHT: .25,
+        e.MOVED_UP: .25,
+        e.MOVED_DOWN: .25
+        #e.SURVIVED_ROUND: 200 # note: the agent can only get this if you win the round or live until round 400
     }
-    reward_sum = 0
+
     for event in events:
         if event in game_rewards:
-            reward_sum += game_rewards[event]
-    self.logger.info(f"Awarded {reward_sum} for events {', '.join(events)}")
-    return torch.tensor([reward_sum])
+            total_reward += game_rewards[event]
 
-def action_to_number(action) -> torch.tensor:
-    return torch.tensor([ACTIONS.index(action)])
+    if e.KILLED_SELF in events or e.GOT_KILLED in events:
+        # nothing else should give reward if the agent dies
+        total_reward = -30
+
+    self.logger.debug(f"Reward from events: {total_reward}")
+    return total_reward
+
+def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
+    total_reward = 0
+
+    # get bomb coords and timers for whole radius and player coords
+    new_bombs_rad = get_bomb_rad_dict(new_game_state)
+    old_bombs_rad = get_bomb_rad_dict(old_game_state)
+    new_player_coord = new_game_state["self"][3]
+    old_player_coord = old_game_state["self"][3]
+
+    scaling = 5
+    # punish agent for being in bomb radius
+    if new_player_coord in new_bombs_rad:
+        total_reward += ((new_bombs_rad[new_player_coord] - 4) * scaling)
+    # reward agent for stepping out of bomb radius
+    elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
+        self.escaped_bombs += 1
+        total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * 0.5
+
+    self.logger.debug(f"Reward for bombs: {total_reward}")
 
 
-def update(self):
-    # in this function, we need to do:
-    # sample minibatch from replay memory
-    if self.memory.size() < hp.batch_size:
-        return
-    replay_batch = self.memory.sample()
+    # add reward if agents moves away from bomb
+    if len(old_game_state["bombs"]) > 0 & len(new_game_state["bombs"]) > 0:
+        new_bomb_coords = np.array([bomb[0] for bomb in new_game_state["bombs"]])
+        old_bomb_coords = np.array([bomb[0] for bomb in old_game_state["bombs"]])
+        new_distance_to_bomb = np.linalg.norm(new_bomb_coords - np.array(new_player_coord)).min()
+        old_distance_to_bomb = np.linalg.norm(old_bomb_coords - np.array(old_player_coord)).min()
+        if new_distance_to_bomb > old_distance_to_bomb:
+            total_reward += 15
+            self.logger.debug(f"Reward for bomb escape: {15}")
 
-    # calculate the predicted Q values in minibatch
-    predictions = self.q_network(replay_batch.state).gather(1, replay_batch.action)
-    targets = replay_batch.reward + hp.discount * self.target_network(replay_batch.next_state).max(1)[0].detach().unsqueeze(1)
+    # Daniel comment to below: I think this will prevent the agent from stepping into the bomb radius 
+    # to get to a coin and still escape the bombs explosion, which would be nice to have
 
-    # use Huber loss like suggested in the paper
-    self.loss = self.loss_object(predictions, targets)
-    self.loss_per_round.append(self.loss.item())
-    self.optimizer.zero_grad()
-    self.loss.backward()
+    # # if the agent is the bomb radius it should ignore coins
+    # if new_player_coord in new_bombs_rad:
+    #     return total_reward
+    
+    return total_reward
+
+    # reward agent for getting close to nearest coin
+    if (self_action in MOVE_ACTIONS) and (e.COIN_COLLECTED not in events) and len(new_game_state['coins']) > 0 and len(old_game_state['coins']) > 0:
+        coin_reward = 0
+        new_distances = []
+        for coin_coord in new_game_state["coins"]:
+            new_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(new_player_coord)))
+        new_min_distance = np.min(np.array(new_distances))
+
+        old_distances = []
+        for coin_coord in old_game_state["coins"]:
+            old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
+        old_min_distance = np.min(np.array(old_distances))
+        coin_reward += (old_min_distance - new_min_distance) * 0.2
+        
+        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.2
+        # weight reward depending on distance to nearest coin
+        reward_for_coin_proximity *= 1/(new_min_distance)**2
+        coin_reward += reward_for_coin_proximity
+
+        self.logger.debug(f"Reward for coins: {coin_reward}")
+
+        total_reward += coin_reward
+
+    return total_reward
+
+    # TO-DO: reward agent for placing bombs which would hit other players and crates
+
+
+def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
+    
+    self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
+
+    old_features = state_to_features(self, old_game_state)
+    new_features = state_to_features(self, new_game_state)
+
+    reward = 0
+    #reward += reward_from_events(self, events)
+    #reward += reward_from_actions(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
+
+    self.previous_action = None
+
+    if e.INVALID_ACTION in events:
+        reward -= 1
+    if e.WAITED in events and not (sum(old_features[0:3]) == 0):
+        reward -= 0.5
+    if e.BOMB_DROPPED in events and old_features[4] == 1:
+        reward += 1
+    if e.MOVED_UP in events and old_features[0] == 1:
+        reward += 0.5
+    if e.MOVED_DOWN in events and old_features[1] == 1:
+        reward += 0.5
+    if e.MOVED_LEFT in events and old_features[2] == 1:
+        reward += 0.5
+    if e.MOVED_RIGHT in events and old_features[3] == 1:
+        reward += 0.5
+
+    # negative reward for just moving back and forth
+    # todo: if agent does this in order to escape a bomb it's okay
+    if self.previous_action != None:
+        if self.previous_action == 'UP' and self_action == 'DOWN':
+            reward -= 1.25
+        if self.previous_action == 'DOWN' and self_action == 'UP':
+            reward -= 1.25
+        if self.previous_action == 'LEFT' and self_action == 'RIGHT':
+            reward -= 1.25
+        if self.previous_action == 'RIGHT' and self_action == 'LEFT':
+            reward -= 1.25
+
+
+    self.logger.debug(f'Reward: {reward}')
+    self.previous_action = self_action
+
+    self.reward_per_step.append(reward)
+
+    if e.INVALID_ACTION in events:
+        self.invalid_actions_per_round += 1
+
+    self.transitions.append(Transition(old_features, self.actions.index(self_action), new_features, reward))
+    
+    loss = update_params(self)
+
+    # copy weights to target net after n steps
+    if self.train_iter % self.steps_per_copy == 0 and self.train_iter != 0:
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+
+        self.weights_copied_iter += 1
+        self.logger.debug(f"weights copied to target net! ({self.weights_copied_iter} times)\n")
+
+    # increase batch size after every n steps for dampening of fluctuations
+    # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
+    if (self.train_iter % (self.steps_per_copy * 10) == 0) and (self.batch_size < 512) and self.train_iter != 0:
+        self.batch_size *= 2
+        self.logger.debug(f"batch size increased to {self.batch_size}!\n")
+
+    self.train_iter += 1
+
+    self.logger.debug(f"Total Reward: {reward}")
     
 
-    # log the gradient values
-    #for tag, value in self.q_network.named_parameters():
-    #    tag = tag.replace('.', '/')
-    #    self.gradients.append(mean(value.grad.data.cpu().numpy()))
+def end_of_round(self, last_game_state: dict, last_action: str, events: List[str]):
+
+    self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
+
+    last_features = state_to_features(self, last_game_state)
+
+    reward = reward_from_events(self, events) / 10
+
+    self.reward_per_step.append(reward)
+
+    if e.INVALID_ACTION in events:
+        self.invalid_actions_per_round += 1
+
+    self.transitions.append(Transition(last_features, self.actions.index(last_action), None, reward))
+
+    loss = update_params(self)
+
+    # copy weights to target net after n steps
+    if self.train_iter % self.steps_per_copy == 0 and self.train_iter != 0:
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+
+        self.weights_copied_iter += 1
+        self.logger.debug(f"weights copied to target net! ({self.weights_copied_iter} times)\n")
+
+    # increase batch size after every n steps for dampening of fluctuations
+    # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
+    if (self.train_iter % (self.steps_per_copy * 10) == 0) and (self.batch_size < 512) and self.train_iter != 0:
+        self.batch_size *= 2
+        self.logger.debug(f"batch size increased to {self.batch_size}!\n")
+
+    self.train_iter += 1
+    self.round += 1
+    avg_invalid_actions_per_step = self.invalid_actions_per_round / last_game_state['step']
+    killed_self = e.KILLED_SELF in events
+
+    self.data_collector.write(train_iter=self.train_iter, 
+                              round=last_game_state['step'], 
+                              epsilon=self.epsilon, 
+                              score=last_game_state["self"][1], 
+                              killed_self=killed_self, 
+                              avg_loss_per_step=np.mean(self.loss_per_step), 
+                              avg_reward_per_step=np.mean(self.reward_per_step),
+                              invalid_actions_per_round=self.invalid_actions_per_round,
+                              avg_invalid_actions_per_step=avg_invalid_actions_per_step,
+                              escaped_bombs=self.escaped_bombs)
+
+    self.loss_per_step = []
+    self.reward_per_step = []
+    self.invalid_actions_per_round = 0
+    self.escaped_bombs = 0
+
+    if self.round % 200:
+        torch.save(self.target_net, 'fc_agent_model.pth')
+
+    self.logger.debug(f"Total Reward: {reward}")
+
+def update_params(self):
+    if len(self.transitions) < self.batch_size:
+        return
+
+    replays = sample(self, self.batch_size)
+
+    # calculate predictions
+    replays_states = torch.cat([torch.from_numpy(replay.state)[None] for replay in replays]).to(self.device)
+    replays_actions = torch.tensor([replay.action for replay in replays]).to(self.device)[:, None]
+    predictions = torch.gather(self.policy_net(replays_states), 1, replays_actions)
+
+    # calculate targets
+    replays_non_terminal_states = []
+    for i, replay in enumerate(replays):
+        if type(replay.next_state) is np.ndarray:
+            replays_non_terminal_states.append(i)
+    replays_non_terminal_states = torch.tensor(replays_non_terminal_states).to(self.device)
+
+    replays_next_states = []
+    for replay in replays:
+        if type(replay.next_state) is np.ndarray:
+            replays_next_states.append(torch.from_numpy(replay.next_state)[None])
+    replays_next_states = torch.cat(replays_next_states).to(self.device)
+
+    max_future_actions = torch.zeros(self.batch_size, 1).to(self.device)
+    max_future_actions[replays_non_terminal_states, :] = torch.max(self.target_net(replays_next_states), dim=1)[0][:, None]
+
+    replays_rewards = torch.tensor([replay.reward for replay in replays]).to(self.device)[:, None]
+    targets = replays_rewards + DISCOUNT * max_future_actions
+
+    # calculate loss, gradients and backpropagate
+    loss = self.loss_function(predictions, targets)
+    self.loss_per_step.append(loss.item())
+    self.optimizer.zero_grad()
+    loss.backward()
     self.optimizer.step()
-
-def plot(path):
-    path = '/content/mle-bomberman/agent_code/cnn_agent/score_per_round.txt'
-    with open(path, 'r') as f:
-        data = f.read()
-
-    data = data.split('\n')
-    data = [line.split('\t') for line in data]
-    data = data[:-1]
-
-    data = [line[3:] for line in data] # ignore iter, round, epsilon
-
-    # get labels from first line
-    labels = data[0]
-
-    # get data from other lines
-    data = data[1:]
-
-    # create plots
-    import matplotlib.pyplot as plt
-    import numpy as np
-    # create bar plots for each label
-    # create a plot with 5 subplots that plot the data
-    fig, axs = plt.subplots(5, 1, figsize=(10, 10))
-    fig.tight_layout(pad=3.0)
-
-
-    # add the asubplots to the plot
-    for i, label in enumerate(labels):
-        axs[i].set_title(label)
-        axs[i].set_xlabel('round')
-        axs[i].set_ylabel(label)
-        # fewer data points on y label for floats
-        axs[i].plot(np.array(data)[:, i])
-
-    plt.show()
-
+    return loss
