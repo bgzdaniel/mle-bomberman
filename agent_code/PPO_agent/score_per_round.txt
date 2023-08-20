@@ -1,0 +1,11 @@
+training_iter	round	epsilon	score	avg_loss_per_step	killed_self	avg_reward_per_step	invalid_actions_per_round	avg_invalid_actions_per_step	escaped_bombs
+1	1	 0.9792	0	 0.0000	True	-2.4000	1	 0.1429	0
+2	2	 0.9608	0	 69458.2379	True	-1.3549	2	 0.1667	1
+3	3	 0.9415	0	 5015978.9637	True	-1.6045	6	 0.5455	0
+4	4	 0.9319	0	 233903.2975	True	-2.4179	4	 0.5714	0
+5	5	 0.9010	0	 758800.6446	True	-0.6797	15	 0.5769	0
+6	6	 0.8880	0	 62785.6194	True	-1.7418	1	 0.1250	2
+7	7	 0.8794	0	 62327.3879	True	-1.4313	7	 0.5833	0
+8	8	 0.8577	0	 1641366.3486	True	-1.0931	8	 0.5333	0
+9	9	 0.8506	0	 681487.1160	True	-2.1938	5	 0.6250	0
+10	10	 0.8365	0	 4623.2584	True	-1.4333	7	 0.5833	0
