@@ -15,7 +15,7 @@ from .utility import DataCollector
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 TRANSITION_HISTORY_SIZE = int(1e6)
-DISCOUNT = 0.75
+DISCOUNT = 0.99
 
 MOVE_ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 
@@ -34,7 +34,7 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = 1500
+    self.steps_per_copy = 1000
     self.train_iter = 0
     
     # for logging
@@ -52,13 +52,13 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -3, # invalid actions waste time
-        e.WAITED: -1.5, # need for pro-active agent
-        e.CRATE_DESTROYED: 2,
-        e.COIN_FOUND: 3,
-        e.COIN_COLLECTED: 20,
-        e.KILLED_OPPONENT: 100,
-        e.SURVIVED_ROUND: 200 # note: the agent can only get this if you win the round or live until round 400
+        e.INVALID_ACTION: -5, # invalid actions waste time
+        e.WAITED: -2.5, # need for pro-active agent
+        e.CRATE_DESTROYED: 10,
+        e.COIN_FOUND: 10,
+        e.COIN_COLLECTED: 50,
+        e.KILLED_OPPONENT: 250,
+        e.SURVIVED_ROUND: 500 # note: the agent can only get this if you win the round or live until round 400
     }
 
     for event in events:
@@ -66,7 +66,7 @@ def reward_from_events(self, events: List[str]) -> int:
             total_reward += game_rewards[event]
 
     if e.KILLED_SELF in events or e.GOT_KILLED in events:
-        total_reward += -125
+        total_reward += -250
 
     self.logger.debug(f"Reward from events: {total_reward}")
     return total_reward
@@ -111,7 +111,12 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
     #     return total_reward
 
     # reward agent for getting close to nearest coin
-    if (self_action in MOVE_ACTIONS) and (e.COIN_COLLECTED not in events) and len(new_game_state['coins']) > 0 and len(old_game_state['coins']) > 0:
+    if (self_action in MOVE_ACTIONS)\
+        and (e.COIN_COLLECTED not in events)\
+        and (e.INVALID_ACTION not in events)\
+        and len(new_game_state['coins']) > 0\
+        and len(old_game_state['coins']) > 0:
+
         coin_reward = 0
         new_distances = []
         for coin_coord in new_game_state["coins"]:
@@ -122,9 +127,9 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
         for coin_coord in old_game_state["coins"]:
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
-        coin_reward += (old_min_distance - new_min_distance) * (1/3)
+        coin_reward += (old_min_distance - new_min_distance) * 0.35
         
-        reward_for_coin_proximity = (old_min_distance - new_min_distance) * (1/3)
+        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.65
         # weight reward depending on distance to nearest coin
         reward_for_coin_proximity *= 1/(new_min_distance)**2
         coin_reward += reward_for_coin_proximity

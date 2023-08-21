@@ -27,10 +27,10 @@ class DqnNet(nn.Module):
                     nn.ReLU(),
                 ]
                 prev_channels = next_channels
+        flatten_size = ((hw - ((2 * outer_self.conv_block_size) * outer_self.depth))**2) * prev_channels
         layers += [
             nn.Flatten(start_dim=1),
-            nn.Linear(((hw - ((2 * outer_self.conv_block_size) * outer_self.depth))**2)\
-                       * prev_channels, len(outer_self.actions)),
+            nn.Linear(flatten_size, len(outer_self.actions)),
         ]
         return nn.ModuleList(layers)
 
@@ -52,7 +52,7 @@ def setup(self):
 
     self.conv_block_size = 1
     self.depth = 8
-    self.init_channels = 16
+    self.init_channels = 128
 
     self.field_dim = 0
     self.bombs_dim = 1
