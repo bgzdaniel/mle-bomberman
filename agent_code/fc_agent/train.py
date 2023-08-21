@@ -49,7 +49,7 @@ def setup_training(self):
 
 
 def get_reward(self, events, old_features):
-    reward = 0
+    reward = 0.0
 
     if e.INVALID_ACTION in events:
         reward -= 1
@@ -83,6 +83,7 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     new_features = state_to_features(self, new_game_state)
 
     reward = get_reward(self, events, old_features)
+    #print(reward)
     self.reward_per_step.append(reward)
 
     if e.INVALID_ACTION in events:
@@ -126,7 +127,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     if e.BOMB_DROPPED in events:
         self.bombs_dropped_per_round += 1
 
-    self.transitions.append(Transition(last_features, self.actions.index(last_action), None, get_reward))
+    self.transitions.append(Transition(last_features, self.actions.index(last_action), None, reward))
 
     update_params(self)
 
