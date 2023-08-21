@@ -52,8 +52,8 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -2, # invalid actions waste time
-        e.WAITED: -1, # need for pro-active agent
+        e.INVALID_ACTION: -3, # invalid actions waste time
+        e.WAITED: -1.5, # need for pro-active agent
         e.CRATE_DESTROYED: 2,
         e.COIN_FOUND: 3,
         e.COIN_COLLECTED: 20,
@@ -122,9 +122,9 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
         for coin_coord in old_game_state["coins"]:
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
-        coin_reward += (old_min_distance - new_min_distance) * 0.4
+        coin_reward += (old_min_distance - new_min_distance) * (1/3)
         
-        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.4
+        reward_for_coin_proximity = (old_min_distance - new_min_distance) * (1/3)
         # weight reward depending on distance to nearest coin
         reward_for_coin_proximity *= 1/(new_min_distance)**2
         coin_reward += reward_for_coin_proximity
@@ -166,12 +166,6 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
         self.weights_copied_iter += 1
         self.logger.debug(f"weights copied to target net! ({self.weights_copied_iter} times)\n")
 
-    # increase batch size after every n steps for dampening of fluctuations
-    # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if (self.train_iter % (self.steps_per_copy * 10) == 0) and (self.batch_size < 512) and self.train_iter != 0:
-        self.batch_size *= 2
-        self.logger.debug(f"batch size increased to {self.batch_size}!\n")
-
     self.train_iter += 1
 
     self.logger.debug(f"Total Reward: {reward}")
@@ -200,12 +194,6 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
         self.weights_copied_iter += 1
         self.logger.debug(f"weights copied to target net! ({self.weights_copied_iter} times)\n")
-
-    # increase batch size after every n steps for dampening of fluctuations
-    # and faster convergence instead of decaying learning rate (https://arxiv.org/abs/1711.00489)
-    if (self.train_iter % (self.steps_per_copy * 10) == 0) and (self.batch_size < 512) and self.train_iter != 0:
-        self.batch_size *= 2
-        self.logger.debug(f"batch size increased to {self.batch_size}!\n")
 
     self.train_iter += 1
     self.round += 1
