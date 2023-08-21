@@ -123,9 +123,9 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
         for coin_coord in old_game_state["coins"]:
             old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
         old_min_distance = np.min(np.array(old_distances))
-        coin_reward += (old_min_distance - new_min_distance) * 0.35
+        coin_reward += (old_min_distance - new_min_distance) / 2
         
-        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.65
+        reward_for_coin_proximity = (old_min_distance - new_min_distance)
         # weight reward depending on distance to nearest coin
         reward_for_coin_proximity *= 1/(new_min_distance)**2
         coin_reward += reward_for_coin_proximity
