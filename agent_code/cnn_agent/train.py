@@ -91,24 +91,20 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
 
     self.logger.debug(f"Reward for bombs: {total_reward}")
 
-    """
-    # add reward if agents moves away from bomb
-    if len(old_game_state["bombs"]) > 0 & len(new_game_state["bombs"]) > 0:
-        new_bomb_coords = np.array([bomb[0] for bomb in new_game_state["bombs"]])
-        old_bomb_coords = np.array([bomb[0] for bomb in old_game_state["bombs"]])
-        new_distance_to_bomb = np.linalg.norm(new_bomb_coords - np.array(new_player_coord)).min()
-        old_distance_to_bomb = np.linalg.norm(old_bomb_coords - np.array(old_player_coord)).min()
-        if new_distance_to_bomb > old_distance_to_bomb:
-            total_reward += 15
-            self.logger.debug(f"Reward for bomb escape: {15}")
-    """
-
-    # Daniel comment to below: I think this will prevent the agent from stepping into the bomb radius 
-    # to get to a coin and still escape the bombs explosion, which would be nice to have
-
-    # # if the agent is the bomb radius it should ignore coins
-    # if new_player_coord in new_bombs_rad:
-    #     return total_reward
+    # reward agent if it places bombs which would hit other players
+    if self_action == e.BOMB_DROPPED:
+        bomb_reward = 0
+        bomb_location = {}
+        bomb_location["bombs"] = [(new_player_coord, 3)]
+        bomb_rad_dict = get_bomb_rad_dict(bomb_location)
+        for other in new_game_state["others"]:
+            other_coord = other[3]
+            max_distance = 3
+            distance = np.linalg.norm(np.array(other_coord) - np.array(new_player_coord))
+            if other_coord in bomb_rad_dict:
+                bomb_reward += max_distance * scaling # for placing bomb near other player
+                bomb_reward += ((max_distance + 1) - distance) * scaling # for placing bomb close to other player
+                total_reward += bomb_reward
 
     # reward agent for getting close to nearest coin
     if (self_action in MOVE_ACTIONS)\
@@ -139,8 +135,6 @@ def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_s
         total_reward += coin_reward
 
     return total_reward
-
-    # TO-DO: reward agent for placing bombs which would hit other players and crates
 
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
@@ -214,7 +208,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
                               avg_reward_per_step=np.mean(self.reward_per_step),
                               invalid_actions_per_round=self.invalid_actions_per_round,
                               avg_invalid_actions_per_step=avg_invalid_actions_per_step,
-                              escaped_bombs=self.escaped_bombs)
+                              steps_survived=last_game_state['step'])
 
     self.loss_per_step = []
     self.reward_per_step = []
