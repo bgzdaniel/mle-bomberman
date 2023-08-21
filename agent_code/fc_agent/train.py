@@ -6,11 +6,10 @@ from torch import nn
 from torch import optim
 import numpy as np
 
-import pickle
 from typing import List
 
 import events as e
-from .callbacks import state_to_features, DqnNet, get_bomb_rad_dict
+from .callbacks import state_to_features, DqnNet
 from .utility import DataCollector
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
@@ -42,105 +41,38 @@ def setup_training(self):
     self.loss_per_step = []
     self.reward_per_step = []
     self.invalid_actions_per_round = 0
+    self.bombs_dropped_per_round = 0
     self.weights_copied_iter = 0
-    self.escaped_bombs = 0
 
     self.data_collector = DataCollector("score_per_round.txt")
     self.data_collector.initialize()
 
-def reward_from_events(self, events: List[str]) -> int:
-    total_reward = 0
 
-    game_rewards = {
-        e.INVALID_ACTION: -5, # invalid actions waste time
-        e.WAITED: -2.5, # need for pro-active agent
-        e.CRATE_DESTROYED: 10,
-        e.COIN_FOUND: 15,
-        e.COIN_COLLECTED: 20,
-        e.BOMB_DROPPED: 5,
-        e.KILLED_OPPONENT: 30,
-        e.MOVED_LEFT: .25,
-        e.MOVED_RIGHT: .25,
-        e.MOVED_UP: .25,
-        e.MOVED_DOWN: .25
-        #e.SURVIVED_ROUND: 200 # note: the agent can only get this if you win the round or live until round 400
-    }
+def get_reward(self, events, old_features):
+    reward = 0
 
-    for event in events:
-        if event in game_rewards:
-            total_reward += game_rewards[event]
+    if e.INVALID_ACTION in events:
+        reward -= 1
+    if e.WAITED in events and not (sum(old_features[0:3]) == 0):
+        reward -= 0.5
+    if e.BOMB_DROPPED in events and old_features[4] == 1:
+        reward += 1
+    if old_features[4] == 1 and not e.BOMB_DROPPED in events:
+        reward -= 1
+    if e.MOVED_UP in events and old_features[0] == 1:
+        reward += 0.5
+    if e.MOVED_DOWN in events and old_features[1] == 1:
+        reward += 0.5
+    if e.MOVED_LEFT in events and old_features[2] == 1:
+        reward += 0.5
+    if e.MOVED_RIGHT in events and old_features[3] == 1:
+        reward += 0.5
 
-    if e.KILLED_SELF in events or e.GOT_KILLED in events:
-        # nothing else should give reward if the agent dies
-        total_reward = -30
+    self.logger.debug(f'Reward: {reward}')
+    return reward
 
-    self.logger.debug(f"Reward from events: {total_reward}")
-    return total_reward
-
-def reward_from_actions(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str], old_features, new_features):
-    total_reward = 0
-
-    # get bomb coords and timers for whole radius and player coords
-    new_bombs_rad = get_bomb_rad_dict(new_game_state)
-    old_bombs_rad = get_bomb_rad_dict(old_game_state)
-    new_player_coord = new_game_state["self"][3]
-    old_player_coord = old_game_state["self"][3]
-
-    scaling = 5
-    # punish agent for being in bomb radius
-    if new_player_coord in new_bombs_rad:
-        total_reward += ((new_bombs_rad[new_player_coord] - 4) * scaling)
-    # reward agent for stepping out of bomb radius
-    elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
-        self.escaped_bombs += 1
-        total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * 0.5
-
-    self.logger.debug(f"Reward for bombs: {total_reward}")
-
-
-    # add reward if agents moves away from bomb
-    if len(old_game_state["bombs"]) > 0 & len(new_game_state["bombs"]) > 0:
-        new_bomb_coords = np.array([bomb[0] for bomb in new_game_state["bombs"]])
-        old_bomb_coords = np.array([bomb[0] for bomb in old_game_state["bombs"]])
-        new_distance_to_bomb = np.linalg.norm(new_bomb_coords - np.array(new_player_coord)).min()
-        old_distance_to_bomb = np.linalg.norm(old_bomb_coords - np.array(old_player_coord)).min()
-        if new_distance_to_bomb > old_distance_to_bomb:
-            total_reward += 15
-            self.logger.debug(f"Reward for bomb escape: {15}")
-
-    # Daniel comment to below: I think this will prevent the agent from stepping into the bomb radius 
-    # to get to a coin and still escape the bombs explosion, which would be nice to have
-
-    # # if the agent is the bomb radius it should ignore coins
-    # if new_player_coord in new_bombs_rad:
-    #     return total_reward
-
-    # reward agent for getting close to nearest coin
-    if (self_action in MOVE_ACTIONS) and (e.COIN_COLLECTED not in events) and len(new_game_state['coins']) > 0 and len(old_game_state['coins']) > 0:
-        coin_reward = 0
-        new_distances = []
-        for coin_coord in new_game_state["coins"]:
-            new_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(new_player_coord)))
-        new_min_distance = np.min(np.array(new_distances))
-
-        old_distances = []
-        for coin_coord in old_game_state["coins"]:
-            old_distances.append(np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord)))
-        old_min_distance = np.min(np.array(old_distances))
-        coin_reward += (old_min_distance - new_min_distance) * 0.2
-        
-        reward_for_coin_proximity = (old_min_distance - new_min_distance) * 0.2
-        # weight reward depending on distance to nearest coin
-        reward_for_coin_proximity *= 1/(new_min_distance)**2
-        coin_reward += reward_for_coin_proximity
-
-        self.logger.debug(f"Reward for coins: {coin_reward}")
-
-        total_reward += coin_reward
-
-    return total_reward
-
-    # TO-DO: reward agent for placing bombs which would hit other players and crates
+def do_every_step(self, old_features, new_features, events: List[str]):
+    pass
 
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
@@ -150,19 +82,17 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     old_features = state_to_features(self, old_game_state)
     new_features = state_to_features(self, new_game_state)
 
-    reward = 0
-    reward += reward_from_events(self, events)
-    reward += reward_from_actions(self, old_game_state, self_action, new_game_state, events, old_features, new_features)
-
-    reward /= 10
+    reward = get_reward(self, events, old_features)
     self.reward_per_step.append(reward)
 
     if e.INVALID_ACTION in events:
         self.invalid_actions_per_round += 1
+    if e.BOMB_DROPPED in events:
+        self.bombs_dropped_per_round += 1
 
     self.transitions.append(Transition(old_features, self.actions.index(self_action), new_features, reward))
     
-    loss = update_params(self)
+    update_params(self)
 
     # copy weights to target net after n steps
     if self.train_iter % self.steps_per_copy == 0 and self.train_iter != 0:
@@ -188,16 +118,17 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     last_features = state_to_features(self, last_game_state)
 
-    reward = reward_from_events(self, events) / 10
-
+    reward = get_reward(self, events, last_features)
     self.reward_per_step.append(reward)
 
     if e.INVALID_ACTION in events:
         self.invalid_actions_per_round += 1
+    if e.BOMB_DROPPED in events:
+        self.bombs_dropped_per_round += 1
 
-    self.transitions.append(Transition(last_features, self.actions.index(last_action), None, reward))
+    self.transitions.append(Transition(last_features, self.actions.index(last_action), None, get_reward))
 
-    loss = update_params(self)
+    update_params(self)
 
     # copy weights to target net after n steps
     if self.train_iter % self.steps_per_copy == 0 and self.train_iter != 0:
@@ -217,8 +148,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     avg_invalid_actions_per_step = self.invalid_actions_per_round / last_game_state['step']
     killed_self = e.KILLED_SELF in events
 
-    self.data_collector.write(train_iter=self.train_iter, 
-                              round=self.round, 
+    self.data_collector.write(round=last_game_state['step'], 
                               epsilon=self.epsilon, 
                               score=last_game_state["self"][1], 
                               killed_self=killed_self, 
@@ -226,17 +156,17 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
                               avg_reward_per_step=np.mean(self.reward_per_step),
                               invalid_actions_per_round=self.invalid_actions_per_round,
                               avg_invalid_actions_per_step=avg_invalid_actions_per_step,
-                              escaped_bombs=self.escaped_bombs)
+                              dropped_bombs=self.bombs_dropped_per_round)
 
     self.loss_per_step = []
     self.reward_per_step = []
     self.invalid_actions_per_round = 0
-    self.escaped_bombs = 0
+    self.bombs_dropped_per_round = 0
 
-    if self.round % 500:
+    if self.round % 200:
         torch.save(self.target_net, 'fc_agent_model.pth')
 
-    self.logger.debug(f"Total Reward: {reward}")
+    self.logger.debug(f"Total Reward: {get_reward}")
 
 def update_params(self):
     if len(self.transitions) < self.batch_size:
