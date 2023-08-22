@@ -30,7 +30,7 @@ def setup_training(self):
     self.batch_size = 32
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
-    self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
+    self.loss_function = nn.CrossEntropyLoss() # cross entropy loss for softmax
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
     self.steps_per_copy = 2500
@@ -127,7 +127,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     if e.BOMB_DROPPED in events:
         self.bombs_dropped_per_round += 1
 
-    self.transitions.append(Transition(last_features, self.actions.index(last_action), None, reward))
+    self.transitions.append(Transition(last_features, self.actions.index(last_action), last_features, reward))
 
     update_params(self)
 
@@ -173,12 +173,50 @@ def update_params(self):
     if len(self.transitions) < self.batch_size:
         return
 
-    replays = sample(self, self.batch_size)
+    replays = random.sample(self.transitions, self.batch_size)
+
+    batch = Transition(*zip(*replays))
+
+    # Convert batch elements to tensors
+    state_batch = torch.cat([torch.from_numpy(replay.state)[None] for replay in replays]).to(self.device)
+    action_batch = torch.tensor([replay.action for replay in replays]).to(self.device)[:, None]
+    next_state_batch = torch.cat([torch.from_numpy(replay.next_state)[None] for replay in replays]).to(self.device)
+    reward_batch = torch.tensor([replay.reward for replay in replays]).to(self.device)[:, None]
+    reward_batch = reward_batch.squeeze()
+
+    # Compute the Q-values for the current state
+    q_values = self.policy_net(state_batch)
+
+    # Compute the Q-values for the next state using the target network
+    next_q_values = self.target_net(next_state_batch)
+
+    # Gather the Q-values for the taken actions
+    q_values = torch.gather(self.policy_net(state_batch), 1, action_batch)
+
+    # Compute the target Q-values using the Bellman equation
+    assert reward_batch.shape == torch.Size([32]), reward_batch.shape
+    assert next_q_values.max(1)[0].shape == torch.Size([32]), next_q_values.max(1)[0].shape
+    target_q_values = reward_batch + DISCOUNT * next_q_values.max(1)[0]
+    labels = target_q_values.long() + 1
+    print(labels)
+
+    # Calculate the Cross-Entropy Loss
+    print()
+    loss = self.loss_function(q_values, labels)  # Note the use of 'long()' for target values
+
+    # Optimize the model
+    self.optimizer.zero_grad()
+    loss.backward()
+    self.optimizer.step()
+
+    return
+
 
     # calculate predictions
     replays_states = torch.cat([torch.from_numpy(replay.state)[None] for replay in replays]).to(self.device)
     replays_actions = torch.tensor([replay.action for replay in replays]).to(self.device)[:, None]
-    predictions = torch.gather(self.policy_net(replays_states), 1, replays_actions)
+    #predictions = torch.gather(self.policy_net(replays_states), 1, replays_actions)
+    q_values = self.policy_net(replays_states)
 
     # calculate targets
     replays_non_terminal_states = []
@@ -193,11 +231,14 @@ def update_params(self):
             replays_next_states.append(torch.from_numpy(replay.next_state)[None])
     replays_next_states = torch.cat(replays_next_states).to(self.device)
 
-    max_future_actions = torch.zeros(self.batch_size, 1).to(self.device)
-    max_future_actions[replays_non_terminal_states, :] = torch.max(self.target_net(replays_next_states), dim=1)[0][:, None]
+    #max_future_actions = torch.zeros(self.batch_size, 1).to(self.device)
+    #max_future_actions[replays_non_terminal_states, :] = torch.max(self.target_net(replays_next_states), dim=1)[0][:, None]
 
     replays_rewards = torch.tensor([replay.reward for replay in replays]).to(self.device)[:, None]
-    targets = replays_rewards + DISCOUNT * max_future_actions
+
+    next_q_values = self.target_net(replays_next_states)
+    q_values = q_values.gather(1, replays_actions.unsqueeze(1))
+    targets = replays_rewards + DISCOUNT * next_q_values.max(1)[0]
 
     # calculate loss, gradients and backpropagate
     loss = self.loss_function(predictions, targets)
@@ -206,3 +247,17 @@ def update_params(self):
     loss.backward()
     self.optimizer.step()
     return loss
+
+    # Calculate the Cross-Entropy Loss
+    loss = loss_function(q_values, target_q_values.long())  # Note the use of 'long()' for target values
+
+    # Optimize the model
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+
+
+
+
+
