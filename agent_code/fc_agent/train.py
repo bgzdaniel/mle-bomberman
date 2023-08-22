@@ -83,7 +83,6 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     new_features = state_to_features(self, new_game_state)
 
     reward = get_reward(self, events, old_features)
-    #print(reward)
     self.reward_per_step.append(reward)
 
     if e.INVALID_ACTION in events:
