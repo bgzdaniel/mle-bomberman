@@ -10,23 +10,14 @@ class DqnNet2(nn.Module):
     
     def __init__(self, outer_self):
         super().__init__()
-        hidden_size = 64 # 128
-        self.fc1 = nn.Linear(outer_self.input_channels, hidden_size)
-        self.relu1 = nn.ReLU()
-        #self.fc2 = nn.Linear(hidden_size, hidden_size)
-        #self.relu2 = nn.ReLU()
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.relu3 = nn.ReLU()
-        self.fc4 = nn.Linear(hidden_size, len(outer_self.actions))
+        self.fc1 = nn.Linear(5, 64)
+        self.fc2 = nn.Linear(64, 64)
+        self.fc3 = nn.Linear(64, 6)
 
     def forward(self, x):
-        x = self.fc1(x)
-        x = self.relu1(x)
-        #x = self.fc2(x)
-        #x = self.relu2(x)
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
         x = self.fc3(x)
-        x = self.relu3(x)
-        x = self.fc4(x)
         return x
     
 class DqnNet(nn.Module):
@@ -147,9 +138,10 @@ def state_to_features(self, game_state: dict):
         elif np.count_nonzero(agent_surroundings == 1) == 1 and np.count_nonzero(agent_surroundings == -1) == 2:
             drop_bomb = 1
         
-        if np.min([np.linalg.norm(agent_position-other[3]) for other in game_state['others']]) < 3:
-            self.logger.debug('dropped bomb due to enemy in range')
-            drop_bomb = 1
+        if len(game_state['others']) > 0:
+          if np.min([np.linalg.norm(agent_position-other[3]) for other in game_state['others']]) < 3:
+              self.logger.debug('dropped bomb due to enemy in range')
+              drop_bomb = 1
 
     # if there's a bomb close to the agent, it should only see directions away from the bomb
     bombs = game_state["bombs"]

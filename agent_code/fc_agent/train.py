@@ -30,7 +30,7 @@ def setup_training(self):
     self.batch_size = 32
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
-    self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
+    self.loss_function = nn.MSELoss()  
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
     self.steps_per_copy = 2500
@@ -54,7 +54,7 @@ def get_reward(self, events, old_features):
     if e.INVALID_ACTION in events:
         reward -= 1
     if e.WAITED in events and not (sum(old_features[0:3]) == 0):
-        reward -= 0.5
+        reward -= 1
     if e.BOMB_DROPPED in events and old_features[4] == 1:
         reward += 1
     if old_features[4] == 1 and not e.BOMB_DROPPED in events:
@@ -69,7 +69,7 @@ def get_reward(self, events, old_features):
         reward += 1
 
     self.logger.debug(f'Reward: {reward}')
-    return reward
+    return reward / 10
 
 def do_every_step(self, old_features, new_features, events: List[str]):
     pass
@@ -173,7 +173,7 @@ def update_params(self):
     if len(self.transitions) < self.batch_size:
         return
 
-    replays = sample(self, self.batch_size)
+    replays = random.sample(self.transitions, self.batch_size)
 
     # calculate predictions
     replays_states = torch.cat([torch.from_numpy(replay.state)[None] for replay in replays]).to(self.device)
