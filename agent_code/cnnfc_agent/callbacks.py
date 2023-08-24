@@ -21,18 +21,17 @@ class DqnNet(nn.Module):
                     nn.ReLU(),
                 ]
                 prev_channels = next_channels
-        previous_size = (
+        flatten_size = (
             (hw - ((4 * outer_self.conv_block_size) * outer_self.depth)) ** 2
         ) * prev_channels
         layers.append(nn.Flatten(start_dim=1))
         for i in range(outer_self.linear_depth):
             layers += [
-                nn.Linear(previous_size, outer_self.linear_width),
+                nn.Linear(flatten_size, flatten_size),
                 nn.ReLU()
             ]
-            previous_size = outer_self.linear_width
         layers += [
-            nn.Linear(previous_size, len(outer_self.actions)),
+            nn.Linear(flatten_size, len(outer_self.actions)),
         ]
         return nn.ModuleList(layers)
 
@@ -54,9 +53,8 @@ def setup(self):
 
     self.conv_block_size = 1
     self.depth = 4
-    self.init_channels = 256
-    self.linear_depth = 8
-    self.linear_width = 256
+    self.init_channels = 128
+    self.linear_depth = 4
 
     self.field_dim = 0
     self.bombs_dim = 1
@@ -75,6 +73,7 @@ def setup(self):
     print()
 
     self.policy_net = DqnNet(self).to(self.device)
+    print(f"Using model: {self.policy_net}")
 
 
 def act(self, game_state: dict) -> str:

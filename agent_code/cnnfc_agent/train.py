@@ -23,7 +23,7 @@ MOVE_ACTIONS = ["UP", "RIGHT", "DOWN", "LEFT"]
 def sample(self, batch_size):
     weights = []
     for replay in self.transitions:
-        weight = 1 if type(replay.next_state) is np.ndarray else 2
+        weight = 1 if type(replay.next_state) is np.ndarray else 5
         weights.append(weight)
     return random.choices(self.transitions, weights=weights, k=batch_size)
 
@@ -35,7 +35,7 @@ def setup_training(self):
     self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = 1000
+    self.steps_per_copy = 2048
     self.train_iter = 0
 
     # for logging
@@ -54,13 +54,13 @@ def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -5,  # invalid actions waste time
-        e.WAITED: -2.5,  # need for pro-active agent
-        e.CRATE_DESTROYED: 10,
-        e.COIN_FOUND: 10,
-        e.COIN_COLLECTED: 50,
-        e.KILLED_OPPONENT: 250,
-        e.SURVIVED_ROUND: 500,  # note: the agent can only get this if you win the round or live until round 400
+        e.INVALID_ACTION: -1,  # invalid actions waste time
+        e.WAITED: -0.5,  # need for pro-active agent
+        e.CRATE_DESTROYED: 2,
+        e.COIN_FOUND: 2,
+        e.COIN_COLLECTED: 10,
+        e.KILLED_OPPONENT: 50,
+        e.SURVIVED_ROUND: 100,  # note: the agent can only get this if you win the round or live until round 400
     }
 
     for event in events:
@@ -68,7 +68,7 @@ def reward_from_events(self, events: List[str]) -> int:
             total_reward += game_rewards[event]
 
     if e.KILLED_SELF in events or e.GOT_KILLED in events:
-        total_reward += -250
+        total_reward += -50
 
     self.logger.debug(f"Reward from events: {total_reward}")
     return total_reward
@@ -91,7 +91,7 @@ def reward_from_actions(
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
-    scaling = 4
+    scaling = 2
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
         total_reward += (new_bombs_rad[new_player_coord] - 4) * scaling
@@ -127,7 +127,6 @@ def reward_from_actions(
     if (
         (self_action in MOVE_ACTIONS)
         and (e.COIN_COLLECTED not in events)
-        and (e.INVALID_ACTION not in events)
         and len(new_game_state["coins"]) > 0
         and len(old_game_state["coins"]) > 0
     ):
@@ -185,7 +184,7 @@ def game_events_occurred(
         new_features,
     )
 
-    reward /= 10
+    reward /= 20
     self.reward_per_step.append(reward)
 
     if e.INVALID_ACTION in events:
@@ -218,7 +217,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     last_features = state_to_features(self, last_game_state)
 
-    reward = reward_from_events(self, events) / 10
+    reward = reward_from_events(self, events) / 20
 
     self.reward_per_step.append(reward)
 
