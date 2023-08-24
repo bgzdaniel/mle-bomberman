@@ -40,7 +40,7 @@ def setup(self):
     self.input_channels = 7
 
     self.input_size = (self.field_shape[0]**2) * self.input_channels
-    self.layer_width = 1024
+    self.layer_width = 512
     self.linear_depth = 16
 
     self.field_dim = 0
