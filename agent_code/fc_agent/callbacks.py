@@ -43,7 +43,41 @@ def setup(self):
 
 
 def act(self, game_state: dict) -> str:
+    #features = state_to_features(self, game_state)
+
+    # ----------------------------------- #
+    # get index of non-zero features
+    field = np.array(game_state['field'], dtype=object)
+    for bomb in game_state['bombs']:
+        field[bomb[0]] = '*'
+
+    for coin in game_state['coins']:
+        field[coin] = 'C'
+
+    for opponent in game_state['others']:
+        field[opponent[3]] = 'E'
+
+    field[game_state['self'][3]] = 'A'  
+
+    # replace all zeros in field with ' '
+    field =  np.where(field == -1, '%', field)
+    field =  np.where(field == 1, 'X', field)
+    field = np.where(field == 0, ' ', field)
+    self.logger.debug(f'\n{field.T}')
+    
     features = state_to_features(self, game_state)
+    features = np.where(features != 0)[0]
+    # randomly sample an index
+    if len(features) == 0:
+        return 'WAIT'
+    index = np.random.choice(features)
+    # get action from index
+    action = self.actions[index]
+    self.logger.debug(f'Action: {action}')
+    return action
+    # ----------------------------------- #
+
+
     if self.train == True:
         rand = random.random()
         if rand <= self.epsilon:
@@ -52,11 +86,6 @@ def act(self, game_state: dict) -> str:
                 self.epsilon *= self.epsilon_decay
             else:
                 self.epsilon = self.epsilon_end
-            #select action from rule based agent
-            #action = rb_act(self, game_state)
-            #if action is None:
-            #    action = 'WAIT'
-            #return action
         else:
             with torch.no_grad():
                 features = torch.from_numpy(features).to(self.device)[None]
@@ -82,6 +111,10 @@ def bomb_is_lethal(agent_position, bomb_position):
     return False
 
 def state_to_features(self, game_state: dict):
+    """
+        Note: When refactoring chunks of the code, encapsulate it first in a function, add the refactored 
+        code in a new function and verify correctness by using asserts and running several rounds
+    """
     if game_state is None:
         return None
 
@@ -115,7 +148,7 @@ def state_to_features(self, game_state: dict):
     # should the agent drop a bomb?
     if game_state['self'][2]:
         agent_surroundings = np.array([field[north], field[south], field[west], field[east]])
-        # drop bomb if 2 or more crates surround agent
+        # drop bomb if 3 or more crates surround agent
         if np.count_nonzero(agent_surroundings == 1) >= 2:
             drop_bomb = 1
         # drop bomb if there's 1 crate and 2 walls around agent
@@ -202,16 +235,62 @@ def state_to_features(self, game_state: dict):
     
     if drop_bomb == 1:
       go_north = go_south = go_west = go_east = 0
+    else:
+        # guide agent towards coins
+        coins = np.array(game_state["coins"])
+        if len(coins) > 0 and go_north + go_south + go_west + go_east > 1:
+            closet_coin_index = np.argmin(np.linalg.norm(coins - agent_position, axis=1))
+            closest_coin_direction = coins[closet_coin_index] - agent_position
+
+            array = []
+             # 'UP', 'RIGHT', 'DOWN', 'LEFT', 'BOMB'
+            if go_north != 0:
+                array.append([[1,0,0,0,0,0], np.linalg.norm(closest_coin_direction-[0,-1])])
+            if go_south != 0:
+                array.append([[0,0,1,0,0,0], np.linalg.norm(closest_coin_direction-[0,1])])
+            if go_west != 0:
+                array.append([[0,0,0,1,0,0], np.linalg.norm(closest_coin_direction-[-1,0])])
+            if go_east != 0:
+                array.append([[0,1,0,0,0,0], np.linalg.norm(closest_coin_direction-[1,0])])
+
+            self.logger.debug(f'array: {array}')
+            # sort array by second value ascending
+            array = sorted(array, key=lambda x: x[1])
+            while len(array) > 1:
+                array.pop()
+
+            go_north = array[0][0][0]
+            go_east = array[0][0][1]
+            go_south = array[0][0][2]
+            go_west = array[0][0][3]
 
     #TODO:
-    # add bias for coins
     # add handling for multiple bombs
     # add recursive algorithm to find escape route (maybe not necessary)
     
-    self.logger.debug(f'X{go_north}X')
-    self.logger.debug(f'{go_west}{drop_bomb}{go_east}')
-    self.logger.debug(f'X{go_south}X')
+    self.logger.debug(f'X {go_north} X')
+    self.logger.debug(f'{go_west} {drop_bomb} {go_east}')
+    self.logger.debug(f'X {go_south} X')
 
     # 'UP', 'RIGHT', 'DOWN', 'LEFT', 'BOMB'
-    return np.array([go_north, go_east, go_south, go_west, drop_bomb]).flatten().astype(np.float32)
+    #return np.array([go_north, go_east, go_south, go_west, drop_bomb]).flatten().astype(np.float32)
+    return np.array([go_north, go_east, go_south, go_west, 0, drop_bomb]).flatten().astype(np.float32)
+
+
+    """
+            closet_coin_index = np.argmin(np.linalg.norm(coins - agent_position, axis=1))
+            closest_coin_direction = coins[closet_coin_index] - agent_position
+            incentive_x_axis = 1/(np.abs(closest_coin_direction[0])+1)**2-1
+            incentive_y_axis = 1/(np.abs(closest_coin_direction[1])+1)**2-1
+            self.logger.debug(f'closest coin: {closest_coin_direction}')
+            if closest_coin_direction[1] < 0:
+                go_north *= (incentive_y_axis + go_north)
+            if closest_coin_direction[1] > 0:
+                go_south *= (incentive_y_axis + go_south)
+            if closest_coin_direction[0] > 0:
+                go_east *= (incentive_x_axis + go_east)
+            if closest_coin_direction[0] < 0:
+                go_west *= (incentive_x_axis + go_west)
+
+    """
 
