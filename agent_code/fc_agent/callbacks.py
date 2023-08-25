@@ -47,6 +47,7 @@ def act(self, game_state: dict) -> str:
 
     # ----------------------------------- #
     # get index of non-zero features
+    """
     field = np.array(game_state['field'], dtype=object)
     for bomb in game_state['bombs']:
         field[bomb[0]] = '*'
@@ -74,7 +75,7 @@ def act(self, game_state: dict) -> str:
     # get action from index
     action = self.actions[index]
     self.logger.debug(f'Action: {action}')
-    return action
+    return action"""
     # ----------------------------------- #
 
 
