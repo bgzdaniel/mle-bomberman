@@ -10,5 +10,5 @@ module load anaconda/3
 source ~/.bashrc
 conda activate newest_torch
 
-python3 main.py play --no-gui --agents cnnfc_agent peaceful_agent --train 1 --scenario coin-trainer --n-rounds 5000
+python3 main.py play --no-gui --agents cnnfc_agent peaceful_agent peaceful_agent peaceful_agent --train 1 --scenario classic --n-rounds 8000
 
