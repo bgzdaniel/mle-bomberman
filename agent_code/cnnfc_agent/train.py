@@ -49,14 +49,14 @@ def setup_training(self):
     self.data_collector = DataCollector("score_per_round.txt")
     self.data_collector.initialize()
 
-    self.reward_scaling = 50
+    self.reward_scaling = 25
 
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -2,  # invalid actions waste time
+        e.INVALID_ACTION: -1.5,  # invalid actions waste time
         e.WAITED: -1,  # need for pro-active agent
         e.CRATE_DESTROYED: 2,
         e.COIN_FOUND: 2,
@@ -125,21 +125,21 @@ def reward_from_actions(
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
-    bomb_scaling = 4
+    bomb_scaling = 10
     # punish agent for being in bomb radius
-    if new_player_coord in new_bombs_rad:
+    if new_player_coord in new_bombs_rad and self_action != "BOMB":
         total_reward += (new_bombs_rad[new_player_coord] - 4) * bomb_scaling
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
         self.escaped_bombs += 1
         total_reward += (
-            ((old_bombs_rad[old_player_coord] - 4) * bomb_scaling) * -1 * (2 / 3)
+            ((old_bombs_rad[old_player_coord] - 4) * bomb_scaling) * -1 * 0.8
         )
 
     self.logger.debug(f"Reward for bombs: {total_reward}")
 
     # reward agent if it places bombs which would hit other players
-    if self_action == e.BOMB_DROPPED:
+    if self_action == "BOMB":
         bomb_reward = 0
         bomb_location = {}
         bomb_location["bombs"] = [(new_player_coord, 3)]
