@@ -23,7 +23,7 @@ MOVE_ACTIONS = ["UP", "RIGHT", "DOWN", "LEFT"]
 def sample(self, batch_size):
     weights = []
     for replay in self.transitions:
-        weight = 1 if type(replay.next_state) is np.ndarray else 5
+        weight = 1 if type(replay.next_state) is np.ndarray else 10
         weights.append(weight)
     return random.choices(self.transitions, weights=weights, k=batch_size)
 
