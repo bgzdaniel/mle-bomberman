@@ -85,7 +85,7 @@ def distance_to_nearest_coin(self, feature_maps, game_state):
     coin_distances = []
     queue = deque([((x - 1, y), 1), ((x + 1, y), 1), ((x, y + 1), 1), ((x, y - 1), 1)])
     while True:
-        if len(coin_distances) == len(coin_coords):
+        if len(coin_distances) == len(coin_coords) or len(queue) == 0:
             break
         coord, distance = queue.popleft()
         if field[coord[0], coord[1]] != 0 or coord in visited_coords:
