@@ -15,7 +15,7 @@ from .utility import DataCollector
 
 Transition = namedtuple("Transition", ("state", "action", "next_state", "reward"))
 TRANSITION_HISTORY_SIZE = int(1e6)
-DISCOUNT = 0.99
+DISCOUNT = 0.995
 
 MOVE_ACTIONS = ["UP", "RIGHT", "DOWN", "LEFT"]
 
@@ -76,6 +76,38 @@ def reward_from_events(self, events: List[str]) -> int:
     return total_reward
 
 
+def distance_to_nearest_coin(self, feature_maps, game_state):
+    field = feature_maps[self.field_dim]
+    coin_coords = game_state["coins"]
+    player_coord = game_state["self"][3]
+    x, y = player_coord
+    visited_coords = {player_coord: 0}
+    coin_distances = []
+    queue = deque([((x - 1, y), 1), ((x + 1, y), 1), ((x, y + 1), 1), ((x, y - 1), 1)])
+    while True:
+        if len(coin_distances) == len(coin_coords):
+            break
+        coord, distance = queue.popleft()
+        if field[coord[0], coord[1]] != 0 or coord in visited_coords:
+            continue
+        visited_coords[coord] = distance
+        if coord in coin_coords:
+            coin_distances.append(distance)
+        x, y = coord
+        next_coords_distances = [
+            ((x - 1, y), distance + 1),
+            ((x + 1, y), distance + 1),
+            ((x, y + 1), distance + 1),
+            ((x, y - 1), distance + 1),
+        ]
+        for next_coord, next_distance in next_coords_distances:
+            if next_coord not in visited_coords:
+                queue.append((next_coord, next_distance))
+
+    min_distance = min(coin_distances)
+    return min_distance
+
+
 def reward_from_actions(
     self,
     old_game_state: dict,
@@ -93,14 +125,14 @@ def reward_from_actions(
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
-    scaling = 2
+    bomb_scaling = 4
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad:
-        total_reward += (new_bombs_rad[new_player_coord] - 4) * scaling
+        total_reward += (new_bombs_rad[new_player_coord] - 4) * bomb_scaling
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
         self.escaped_bombs += 1
-        total_reward += ((old_bombs_rad[old_player_coord] - 4) * scaling) * -1 * (2 / 3)
+        total_reward += ((old_bombs_rad[old_player_coord] - 4) * bomb_scaling) * -1 * (2 / 3)
 
     self.logger.debug(f"Reward for bombs: {total_reward}")
 
@@ -118,37 +150,26 @@ def reward_from_actions(
             )
             if other_coord in bomb_rad_dict:
                 bomb_reward += (
-                    max_distance * scaling
+                    max_distance * bomb_scaling
                 )  # for placing bomb near other player
                 bomb_reward += (
                     (max_distance + 1) - distance
-                ) * scaling  # for placing bomb close to other player
+                ) * bomb_scaling  # for placing bomb close to other player
                 total_reward += bomb_reward
 
-    # reward agent for getting close to nearest coin
     if (
         (self_action in MOVE_ACTIONS)
         and (e.COIN_COLLECTED not in events)
         and len(new_game_state["coins"]) > 0
         and len(old_game_state["coins"]) > 0
     ):
-        coin_reward = 0
-        new_distances = []
-        for coin_coord in new_game_state["coins"]:
-            new_distances.append(
-                np.linalg.norm(np.array(coin_coord) - np.array(new_player_coord))
-            )
-        new_min_distance = np.min(np.array(new_distances))
 
-        old_distances = []
-        for coin_coord in old_game_state["coins"]:
-            old_distances.append(
-                np.linalg.norm(np.array(coin_coord) - np.array(old_player_coord))
-            )
-        old_min_distance = np.min(np.array(old_distances))
-        coin_reward += (old_min_distance - new_min_distance) / 2
+        old_min_distance = distance_to_nearest_coin(self, old_features, old_game_state)
+        new_min_distance = distance_to_nearest_coin(self, new_features, new_game_state)
 
-        reward_for_coin_proximity = old_min_distance - new_min_distance
+        coin_reward += (old_min_distance - new_min_distance)
+
+        reward_for_coin_proximity = (old_min_distance - new_min_distance)
         # weight reward depending on distance to nearest coin
         reward_for_coin_proximity *= 1 / (new_min_distance) ** 2
         coin_reward += reward_for_coin_proximity
