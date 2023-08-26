@@ -165,6 +165,8 @@ def reward_from_actions(
         and len(new_game_state["coins"]) > 0
         and len(old_game_state["coins"]) > 0
     ):
+        coin_reward = 0
+
         old_min_distance = distance_to_nearest_coin(self, old_features, old_game_state)
         new_min_distance = distance_to_nearest_coin(self, new_features, new_game_state)
 
