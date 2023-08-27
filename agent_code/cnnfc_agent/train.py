@@ -33,10 +33,10 @@ def setup_training(self):
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
     self.target_net.train()
-    self.loss_function = nn.MSELoss()
+    self.loss_function = nn.SmoothL1Loss()
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = 2048
+    self.steps_per_copy = 1024
     self.train_iter = 0
 
     # for logging
