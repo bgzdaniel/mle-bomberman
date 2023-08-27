@@ -17,7 +17,7 @@ Transition = namedtuple("Transition", ("state", "action", "next_state", "reward"
 TRANSITION_HISTORY_SIZE = int(1e6)
 DISCOUNT = 0.995
 
-MOVE_ACTIONS = ["UP", "RIGHT", "DOWN", "LEFT"]
+MOVE_ACTIONS = [e.MOVED_UP, e.MOVED_RIGHT, e.MOVED_DOWN, e.MOVED_LEFT]
 
 
 def sample(self, batch_size):
@@ -128,7 +128,7 @@ def reward_from_actions(
 
     bomb_scaling = 10
     # punish agent for being in bomb radius
-    if new_player_coord in new_bombs_rad and self_action != "BOMB":
+    if new_player_coord in new_bombs_rad and e.BOMB_DROPPED not in events:
         total_reward += (new_bombs_rad[new_player_coord] - 4) * bomb_scaling
     # reward agent for stepping out of bomb radius
     elif old_player_coord in old_bombs_rad and new_player_coord not in new_bombs_rad:
@@ -136,11 +136,11 @@ def reward_from_actions(
         total_reward += (
             ((old_bombs_rad[old_player_coord] - 4) * bomb_scaling) * -1 * 0.8
         )
-
+        
     self.logger.debug(f"Reward for bombs: {total_reward}")
 
     # reward agent if it places bombs which would hit other players
-    if self_action == "BOMB":
+    if e.BOMB_DROPPED in events:
         bomb_reward = 0
         bomb_location = {}
         bomb_location["bombs"] = [(new_player_coord, 3)]
@@ -161,7 +161,7 @@ def reward_from_actions(
                 total_reward += bomb_reward
 
     if (
-        (self_action in MOVE_ACTIONS)
+        any(event in MOVE_ACTIONS for event in events)
         and (e.COIN_COLLECTED not in events)
         and len(new_game_state["coins"]) > 0
         and len(old_game_state["coins"]) > 0
