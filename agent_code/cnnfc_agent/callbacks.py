@@ -73,6 +73,7 @@ def setup(self):
     print()
 
     self.policy_net = DqnNet(self).to(self.device)
+    self.policy_net.train()
     print(f"Using model: {self.policy_net}")
 
 

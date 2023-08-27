@@ -32,7 +32,8 @@ def setup_training(self):
     self.batch_size = 32
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
-    self.loss_function = nn.SmoothL1Loss()  # Huber Loss as proposed by the paper
+    self.target_net.train()
+    self.loss_function = nn.MSELoss()
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
     self.steps_per_copy = 2048
@@ -225,6 +226,7 @@ def game_events_occurred(
     # copy weights to target net after n steps
     if self.train_iter % self.steps_per_copy == 0 and self.train_iter != 0:
         self.target_net.load_state_dict(self.policy_net.state_dict())
+        self.target_net.train()
 
         self.weights_copied_iter += 1
         self.logger.debug(
@@ -259,6 +261,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     # copy weights to target net after n steps
     if self.train_iter % self.steps_per_copy == 0 and self.train_iter != 0:
         self.target_net.load_state_dict(self.policy_net.state_dict())
+        self.target_net.train()
 
         self.weights_copied_iter += 1
         self.logger.debug(
