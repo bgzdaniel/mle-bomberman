@@ -310,6 +310,7 @@ def update_params(self):
         self.device
     )[:, None]
     predictions = torch.gather(self.policy_net(replays_states), 1, replays_actions)
+    predictions = predictions.type(torch.FloatTensor)
 
     # calculate targets
     replays_non_terminal_states = []
@@ -335,6 +336,7 @@ def update_params(self):
         self.device
     )[:, None]
     targets = replays_rewards + DISCOUNT * max_future_actions
+    targets = targets.type(torch.FloatTensor)
 
     # calculate loss, gradients and backpropagate
     loss = self.loss_function(predictions, targets)
