@@ -40,7 +40,7 @@ def setup_training(self):
     self.train_iter = 0
 
     # for logging
-    self.round = 0
+    self.round = 1
     self.loss_per_step = []
     self.reward_per_step = []
     self.invalid_actions_per_round = 0
@@ -294,6 +294,9 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.escaped_bombs = 0
 
     self.logger.debug(f"Total Reward: {reward}")
+
+    if self.round % 2000 == 0:
+        torch.save(self.policy_net.state_dict(), "cnnfc_agent.pt")
 
 
 def update_params(self):
