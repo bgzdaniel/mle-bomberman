@@ -49,24 +49,25 @@ def setup_training(self):
 
 
 def get_reward(self, events, old_features):
-    reward = 0.0
+    """
+        Rewards the agent if it selects an action from the suggested actions.
+    """
+    reward = -1.0
 
-    if e.INVALID_ACTION in events:
-        reward -= 1
-    if e.WAITED in events and not (sum(old_features[0:3]) == 0):
-        reward -= 1
+    # [go_up, go_right, go_down, go_left, drop_bomb]
+
     if e.BOMB_DROPPED in events and old_features[4] == 1:
-        reward += 1
-    if old_features[4] == 1 and not e.BOMB_DROPPED in events:
-        reward -= 1
+        reward += 2
     if e.MOVED_UP in events and old_features[0] == 1:
-        reward += 1
-    if e.MOVED_DOWN in events and old_features[1] == 1:
-        reward += 1
-    if e.MOVED_LEFT in events and old_features[2] == 1:
-        reward += 1
-    if e.MOVED_RIGHT in events and old_features[3] == 1:
-        reward += 1
+        reward += 2
+    if e.MOVED_RIGHT in events and old_features[1] == 1:
+        reward += 2
+    if e.MOVED_DOWN in events and old_features[2] == 1:
+        reward += 2
+    if e.MOVED_LEFT in events and old_features[3] == 1:
+        reward += 2
+    if e.WAITED in events and sum(old_features) == 0:
+        reward += 2
 
     self.logger.debug(f'Reward: {reward}')
     return reward / 10
@@ -76,11 +77,18 @@ def do_every_step(self, old_features, new_features, events: List[str]):
 
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
+
+
     
     self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
+    self.logger.debug(f'self.action = {self.last_action}')
+
+    #self.logger.debug(old_game_state)
 
     old_features = state_to_features(self, old_game_state)
     new_features = state_to_features(self, new_game_state)
+
+    self.logger.debug(f'Old features: {old_features}')
 
     reward = get_reward(self, events, old_features)
     self.reward_per_step.append(reward)
