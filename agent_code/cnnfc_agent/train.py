@@ -50,14 +50,14 @@ def setup_training(self):
     self.data_collector = DataCollector("score_per_round.txt")
     self.data_collector.initialize()
 
-    self.reward_scaling = 25
+    self.reward_scaling = 50
 
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -1.5,  # invalid actions waste time
+        e.INVALID_ACTION: -2,  # invalid actions waste time
         e.WAITED: -1,  # need for pro-active agent
         e.CRATE_DESTROYED: 2,
         e.COIN_FOUND: 2,
