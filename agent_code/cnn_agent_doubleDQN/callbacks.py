@@ -1,5 +1,4 @@
 import random
-
 import numpy as np
 import torch
 from torch import nn
@@ -15,14 +14,12 @@ class DqnNet(nn.Module):
         prev_channels = outer_self.input_channels
         layers = []
         for i in range(outer_self.depth):
-            if i == 0:
-                next_channels = outer_self.init_channels
-            else:
-                next_channels = prev_channels * 2
+            next_channels = outer_self.init_channels if i == 0 else prev_channels * 2
             for _ in range(outer_self.conv_block_size):
                 layers += [
                     nn.Conv2d(prev_channels, next_channels, 3),
                     nn.ReLU(),
+                    nn.BatchNorm2d(next_channels),
                 ]
                 prev_channels = next_channels
         flatten_size = (
@@ -51,7 +48,7 @@ def setup(self):
     self.input_channels = 7
 
     self.conv_block_size = 1
-    self.depth = 8
+    self.depth = 7
     self.init_channels = 32
 
     self.field_dim = 0
@@ -71,6 +68,8 @@ def setup(self):
     print()
 
     self.policy_net = DqnNet(self).to(self.device)
+    self.policy_net.train()
+    print(f"Using model: {self.policy_net}")
 
 
 def act(self, game_state: dict) -> str:
@@ -114,11 +113,6 @@ def get_bomb_rad_dict(game_state):
 def state_to_features(self, game_state: dict):
     if game_state is None:
         return None
-
-    # for testing
-    # game_state["bombs"] = [((1, 2), 3), ((3, 4), 5)]
-    # game_state["coins"] = [(0, 1), (1, 2), (2, 3)]
-    # game_state["others"] = [("", 0, True, (5, 6)), ("", 0, False, (5, 5))]
 
     field = game_state["field"]
 
@@ -164,6 +158,5 @@ def state_to_features(self, game_state: dict):
         others[others_coords[:, 0], others_coords[:, 1]] = others_bomb_action
 
     channels = [field, bombs, bombs_rad, explosion_map, coins, myself, others]
-    # feature_maps = np.stack(channels, axis=0, dtype=np.float32) doesn't work on colab
     feature_maps = np.stack(channels, axis=0).astype(np.float32)
     return feature_maps
