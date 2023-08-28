@@ -19,6 +19,7 @@ class DqnNet(nn.Module):
                 layers += [
                     nn.Conv2d(prev_channels, next_channels, 5),
                     nn.ReLU(),
+                    nn.BatchNorm2d(),
                 ]
                 prev_channels = next_channels
         flatten_size = (
@@ -28,7 +29,8 @@ class DqnNet(nn.Module):
         for i in range(outer_self.linear_depth):
             layers += [
                 nn.Linear(flatten_size, flatten_size),
-                nn.ReLU()
+                nn.ReLU(),
+                nn.BatchNorm1d()
             ]
         layers += [
             nn.Linear(flatten_size, len(outer_self.actions)),

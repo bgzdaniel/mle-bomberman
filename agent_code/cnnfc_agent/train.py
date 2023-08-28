@@ -15,7 +15,7 @@ from .utility import DataCollector
 
 Transition = namedtuple("Transition", ("state", "action", "next_state", "reward"))
 TRANSITION_HISTORY_SIZE = int(1e6)
-DISCOUNT = 0.995
+DISCOUNT = 0.99
 
 MOVE_ACTIONS = [e.MOVED_UP, e.MOVED_RIGHT, e.MOVED_DOWN, e.MOVED_LEFT]
 
@@ -29,14 +29,14 @@ def sample(self, batch_size):
 
 
 def setup_training(self):
-    self.batch_size = 32
+    self.batch_size = 512
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
     self.target_net.train()
     self.loss_function = nn.SmoothL1Loss()
     self.optimizer = optim.Adam(self.policy_net.parameters())
     self.transitions = deque(maxlen=TRANSITION_HISTORY_SIZE)
-    self.steps_per_copy = 1024
+    self.steps_per_copy = 2048
     self.train_iter = 0
 
     # for logging
@@ -50,15 +50,15 @@ def setup_training(self):
     self.data_collector = DataCollector("score_per_round.txt")
     self.data_collector.initialize()
 
-    self.reward_scaling = 50
+    self.reward_scaling = 25
 
 
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
     game_rewards = {
-        e.INVALID_ACTION: -2,  # invalid actions waste time
-        e.WAITED: -1,  # need for pro-active agent
+        e.INVALID_ACTION: -1.5,  # invalid actions waste time
+        e.WAITED: -0.5,  # need for pro-active agent
         e.CRATE_DESTROYED: 2,
         e.COIN_FOUND: 2,
         e.COIN_COLLECTED: 10,
