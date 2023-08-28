@@ -29,7 +29,7 @@ def sample(self, batch_size):
 
 
 def setup_training(self):
-    self.batch_size = 2
+    self.batch_size = 512
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
     self.target_net.train()
