@@ -196,7 +196,7 @@ def get_bomb_decision(agent_position, agent_surroundings, others):
     
     if len(others) > 0:
         # idea: experiment with this parameter
-        if np.min([np.linalg.norm(agent_position-other[3]) for other in others]) < 3:
+        if np.min([np.linalg.norm(agent_position-other[3]) for other in others]) < 2:
             drop_bomb = 1
 
     return drop_bomb
@@ -285,14 +285,17 @@ def state_to_features(self, game_state: dict):
         if len(coins) > 0 and len(valid_moves) > 1:
             closet_coin_index = np.argmin(np.linalg.norm(coins - agent_position, axis=1))
             closest_coin = coins[closet_coin_index]
-
+            self.logger.debug(f'Valid moves: {valid_moves} (pre-coin)')
             valid_moves = make_agent_go_closer_to(closest_coin, agent_position, valid_moves)
+            self.logger.debug(f'Valid moves: {valid_moves} (post-coin)')
 
         # and make agent go towards closest opponent
         if len(game_state['others']) > 1 and len(valid_moves):
             closest_opponent_index = np.argmin([np.linalg.norm(np.array(other[3]) - agent_position) for other in game_state['others']])
             closest_opponent = game_state['others'][closest_opponent_index]
+            self.logger.debug(f'Valid moves: {valid_moves} (pre-oppo)')
             valid_moves = make_agent_go_closer_to(closest_opponent[3], agent_position, valid_moves)
+            self.logger.debug(f'Valid moves: {valid_moves} (post-oppo)')
 
         # when the agent is not dodging bombs or chasing coins, this prevents it from just moving back and forth
         if self.last_action['step'] < game_state['step'] and len(valid_moves) > 1:
