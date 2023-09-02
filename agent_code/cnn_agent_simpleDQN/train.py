@@ -47,7 +47,7 @@ def setup_training(self):
     self.weights_copied_iter = 0
     self.escaped_bombs = 0
 
-    self.data_collector = DataCollector("score_per_round.txt")
+    self.data_collector = DataCollector()
     self.data_collector.initialize()
 
     self.reward_scaling = 100
@@ -104,7 +104,7 @@ def distance_to_nearest_coin(self, feature_maps, game_state):
         for next_coord, next_distance in next_coords_distances:
             if next_coord not in visited_coords:
                 queue.append((next_coord, next_distance))
-
+                
     min_distance = min(coin_distances)
     return min_distance
 
@@ -296,7 +296,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.logger.debug(f"Total Reward: {reward}")
 
     if self.round % 2000 == 0:
-        torch.save(self.policy_net.state_dict(), "cnnfc_agent.pt")
+        torch.save(self.policy_net.state_dict(), "agent.pt")
 
 
 def update_params(self):

@@ -17,23 +17,23 @@ class DqnNet(nn.Module):
             next_channels = outer_self.init_channels if i == 0 else prev_channels * 2
             for _ in range(outer_self.conv_block_size):
                 layers += [
-                    nn.Conv2d(prev_channels, next_channels, 5),
+                    nn.Conv2d(prev_channels, next_channels, 3),
                     nn.ReLU(),
-                    nn.BatchNorm2d(),
+                    nn.BatchNorm2d(next_channels),
                 ]
                 prev_channels = next_channels
         flatten_size = (
-            (hw - ((4 * outer_self.conv_block_size) * outer_self.depth)) ** 2
+            (hw - ((2 * outer_self.conv_block_size) * outer_self.depth)) ** 2
         ) * prev_channels
         layers.append(nn.Flatten(start_dim=1))
         for i in range(outer_self.linear_depth):
+            input_size = flatten_size if i == 0 else outer_self.linear_width
             layers += [
-                nn.Linear(flatten_size, flatten_size),
+                nn.Linear(input_size, outer_self.linear_width),
                 nn.ReLU(),
-                nn.BatchNorm1d()
             ]
         layers += [
-            nn.Linear(flatten_size, len(outer_self.actions)),
+            nn.Linear(outer_self.linear_width, len(outer_self.actions)),
         ]
         return nn.ModuleList(layers)
 
@@ -54,9 +54,10 @@ def setup(self):
     self.input_channels = 7
 
     self.conv_block_size = 1
-    self.depth = 4
-    self.init_channels = 128
+    self.depth = 7
+    self.init_channels = 64
     self.linear_depth = 4
+    self.linear_width = 1024
 
     self.field_dim = 0
     self.bombs_dim = 1

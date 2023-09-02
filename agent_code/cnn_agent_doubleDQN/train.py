@@ -29,7 +29,7 @@ def sample(self, batch_size):
 
 
 def setup_training(self):
-    self.batch_size = 128
+    self.batch_size = 32
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
     self.target_net.train()
@@ -47,7 +47,7 @@ def setup_training(self):
     self.weights_copied_iter = 0
     self.escaped_bombs = 0
 
-    self.data_collector = DataCollector("score_per_round.txt")
+    self.data_collector = DataCollector()
     self.data_collector.initialize()
 
     self.reward_scaling = 100
@@ -126,7 +126,7 @@ def reward_from_actions(
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
-    bomb_scaling = 10
+    bomb_scaling = 5
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad and e.BOMB_DROPPED not in events:
         total_reward += (new_bombs_rad[new_player_coord] - 4) * bomb_scaling
@@ -170,10 +170,10 @@ def reward_from_actions(
 
         old_min_distance = distance_to_nearest_coin(self, old_features, old_game_state)
         new_min_distance = distance_to_nearest_coin(self, new_features, new_game_state)
+        diff = old_min_distance - new_min_distance
+        coin_reward += diff * 2
 
-        coin_reward += old_min_distance - new_min_distance
-
-        reward_for_coin_proximity = old_min_distance - new_min_distance
+        reward_for_coin_proximity = diff * 2
         # weight reward depending on distance to nearest coin
         reward_for_coin_proximity *= 1 / (new_min_distance) ** 2
         coin_reward += reward_for_coin_proximity
@@ -296,7 +296,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.logger.debug(f"Total Reward: {reward}")
 
     if self.round % 2000 == 0:
-        torch.save(self.policy_net.state_dict(), "cnnfc_agent.pt")
+        torch.save(self.policy_net.state_dict(), "agent.pt")
 
 
 def update_params(self):

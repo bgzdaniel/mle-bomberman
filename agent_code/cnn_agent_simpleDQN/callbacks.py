@@ -10,21 +10,18 @@ class DqnNet(nn.Module):
         self.layers = self._make_layers(outer_self)
 
     def _make_layers(self, outer_self):
-        hw = outer_self.field_shape[0]
         prev_channels = outer_self.input_channels
         layers = []
         for i in range(outer_self.depth):
             next_channels = outer_self.init_channels if i == 0 else prev_channels * 2
             for _ in range(outer_self.conv_block_size):
                 layers += [
-                    nn.Conv2d(prev_channels, next_channels, 3),
+                    nn.Conv2d(prev_channels, next_channels, outer_self.kernel_sizes[i]),
                     nn.ReLU(),
                     nn.BatchNorm2d(next_channels),
                 ]
                 prev_channels = next_channels
-        flatten_size = (
-            (hw - ((2 * outer_self.conv_block_size) * outer_self.depth)) ** 2
-        ) * prev_channels
+        flatten_size = 6400
         layers += [
             nn.Flatten(start_dim=1),
             nn.Linear(flatten_size, len(outer_self.actions)),
@@ -48,7 +45,9 @@ def setup(self):
     self.input_channels = 7
 
     self.conv_block_size = 1
-    self.depth = 7
+    self.depth = 4
+    self.kernel_sizes = [5, 5, 3, 3]
+    assert(self.depth == len(self.kernel_sizes))
     self.init_channels = 32
 
     self.field_dim = 0

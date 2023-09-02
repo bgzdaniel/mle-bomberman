@@ -2,10 +2,10 @@
 
 #SBATCH -p dev
 #SBATCH --nodes=1
+#SBATCH --exclude=octane[001-008],ceg-victoria
 #SBATCH --gres=gpu:1
 #SBATCH --mem=32G
 #SBATCH --output=rl_output_cnnfc.txt
-#SBATCH --nodelist=ceg-brook[02]
 
 module load anaconda/3
 source ~/.bashrc
