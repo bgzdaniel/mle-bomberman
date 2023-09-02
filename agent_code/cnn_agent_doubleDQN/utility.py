@@ -1,5 +1,5 @@
 class DataCollector:
-    def __init__(self, file_name="score_per_round_doubleDQN_coin-trainer.txt"):
+    def __init__(self, file_name="score_per_round_doubleDQN_classic.txt"):
         self.file_name = file_name
 
     def initialize(self):
