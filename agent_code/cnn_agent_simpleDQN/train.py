@@ -273,7 +273,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     avg_invalid_actions_per_step = (
         self.invalid_actions_per_round / last_game_state["step"]
     )
-    killed_self = e.KILLED_SELF in events
+    killed_self = e.KILLED_SELF in events or e.GOT_KILLED in events
 
     self.data_collector.write(
         train_iter=self.train_iter,
