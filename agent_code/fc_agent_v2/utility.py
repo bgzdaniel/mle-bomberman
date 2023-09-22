@@ -1,6 +1,9 @@
 
 
 class DataCollector:
+    """
+    This class implements a way to persist data relevant to training.
+    """
 
     def __init__(self, file_name="score_per_round.txt"):
         self.file_name = file_name
