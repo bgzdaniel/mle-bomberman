@@ -70,6 +70,9 @@ def setup(self):
     self.policy_net.train()
     print(f"Using model: {self.policy_net}")
 
+    if self.train == False:
+        self.policy_net.load_state_dict(torch.load("agent.pt"))
+
 
 def act(self, game_state: dict) -> str:
     features = state_to_features(self, game_state)
