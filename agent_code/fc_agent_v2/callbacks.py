@@ -13,6 +13,9 @@ WAIT = [0,0]
 MOVES = {'UP': UP, 'RIGHT': RIGHT, 'DOWN': DOWN, 'LEFT': LEFT, 'WAIT': [0,0], 'BOMB': [0,0]}
     
 class DqnNet(nn.Module):
+    """
+    This class defines the neural net used by the agent.
+    """
     
     def __init__(self, outer_self):
         super(DqnNet, self).__init__()
@@ -27,8 +30,13 @@ class DqnNet(nn.Module):
         x = self.relu(x)
         x = self.fc2(x)
         return x
+    
 
 def setup(self):
+    """
+    Setup function that is called once to initialize the agent. If requested, a new
+    agent model is trained.
+    """
     self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
     self.epsilon = 1
@@ -48,7 +56,13 @@ def setup(self):
         self.target_net = torch.load('fc_agent_model.pth', map_location=self.device)
         self.policy_net = torch.load('fc_agent_model.pth', map_location=self.device)
 
-def print_map_to_log(self, game_state):
+
+def print_map_to_log(self, game_state) -> None:
+    """
+    Helper function that prints the current game state to log.
+
+    :param game_state: Current state of the game
+    """
     field = np.array(game_state['field'], dtype=object)
     for bomb in game_state['bombs']:
         field[bomb[0]] = '*'
@@ -61,7 +75,6 @@ def print_map_to_log(self, game_state):
 
     field[game_state['self'][3]] = 'A'  
 
-    # replace all zeros in field with ' '
     field =  np.where(field == -1, '%', field)
     field =  np.where(field == 1, 'X', field)
     field = np.where(field == 0, ' ', field)
@@ -73,6 +86,12 @@ def print_map_to_log(self, game_state):
 
 
 def act(self, game_state: dict) -> str:
+    """
+    Get action from agent. The are two scenarios: Either we train or we play.
+    The difference is epsilon decay and random choices during training.
+
+    :param game_state: Current state of the game
+    """
 
     self.logger.debug('Map in act()')
     print_map_to_log(self, game_state)
@@ -86,42 +105,6 @@ def act(self, game_state: dict) -> str:
     self.logger.debug(f'X {int(features[2])} X')
 
     self.logger.debug(features)
-
-    """
-    if not np.array_equal(features, _features):
-        self.logger.debug('Diff:')
-
-    # ----------------------------------- #
-    # get index of non-zero features
-    field = np.array(game_state['field'], dtype=object)
-    for bomb in game_state['bombs']:
-        field[bomb[0]] = '*'
-
-    for coin in game_state['coins']:
-        field[coin] = 'C'
-
-    for opponent in game_state['others']:
-        field[opponent[3]] = 'E'
-
-    field[game_state['self'][3]] = 'A'  
-
-    # replace all zeros in field with ' '
-    field =  np.where(field == -1, '%', field)
-    field =  np.where(field == 1, 'X', field)
-    field = np.where(field == 0, ' ', field)
-    self.logger.debug(f'\n{field.T}')
-    
-    features = np.where(features != 0)[0]
-    # randomly sample an index
-    if len(features) == 0:
-        return 'WAIT'
-    index = np.random.choice(features)
-    # get action from index
-    action = self.actions[index]
-    self.logger.debug(f'Action: {action}')
-    return action
-    """
-    # ----------------------------------- #
 
     if self.train == True:
         rand = random.random()
@@ -147,6 +130,14 @@ def act(self, game_state: dict) -> str:
 
 
 def bomb_is_lethal(agent_position, bomb_position):
+    """
+    This function determines whether a bomb close to the agent is deadly or not. Note how this function
+    does not take the bomb timer into account.
+
+    :param agent_position: Current agent position on the field
+    :param bomb_position: Position of a bomb on the field
+    :return: A boolean that indicates if the given bomb is deadly
+    """
     if agent_position[0] != bomb_position[0] and agent_position[1] != bomb_position[1]:
         return False 
     if agent_position[0] == bomb_position[0] and np.abs(agent_position[1] - bomb_position[1]) <= 3:
@@ -156,6 +147,13 @@ def bomb_is_lethal(agent_position, bomb_position):
     return False
 
 def get_valid_moves(agent_position, game_state):
+    """
+    This function returns the valid moves given a agent position and game state. Moves to a tile
+    that contains a wall, crate, opponent or explosion are considered invalid.
+
+    :param agent_position: Current agent position on the field
+    :param game_state: Current state of the game
+    """
     field = game_state["field"].copy()
     # treat opponents as walls to compute valid moves
     for other in game_state["others"]:
@@ -169,12 +167,26 @@ def get_valid_moves(agent_position, game_state):
     return valid_moves
 
 def bombs_are_lethal(agent_position, bomb_positions):
+    """
+    This function computes the deadlines of several bombs given the agent's position.
+
+    :param agent_position: Current agent position on the field
+    :param bomb_positions: Array of bomb positions
+    :return: A boolean that indicates if one of the bombs is deadly
+    """
     for bomb_position in bomb_positions:
         if bomb_is_lethal(agent_position, bomb_position):
             return True
     return False
 
 def get_agent_surroudings(agent_position, game_state):
+    """
+    This function returns the contents of the four fields that surround the agent.
+
+    :param agent_position: Current agent position on the field
+    :param game_state: Current state of the game
+    :return: Array of length 4 that contains the agents surroundings
+    """
     up = tuple(agent_position + UP)
     down = tuple(agent_position + DOWN)
     left = tuple(agent_position + LEFT)
@@ -184,7 +196,15 @@ def get_agent_surroudings(agent_position, game_state):
     return agent_surroundings
 
 def get_bomb_decision(agent_position, agent_surroundings, others):
+    """
+    This function calculates whether the agent should drop a bomb given the agent position,
+    the agent's surroundings and the positions of the other agents.
 
+    :param agent_position: Current agent position on the field
+    :param agent_surroundings: Array that contains the content of the 4 fields around the agent
+    :param others: Array that contains the positions of the other agents
+    :return: Decision to drop a bomb as boolean
+    """
     drop_bomb = 0
     
     # drop bomb if 3 or more crates surround agent
@@ -203,6 +223,18 @@ def get_bomb_decision(agent_position, agent_surroundings, others):
 
 
 def escape_bomb_recursively_bfs(self, agent_position, bomb_positions, game_state, possible_moves, depth=0):
+    """
+    This function recursively finds the shortest escape path given the game state, agent position,
+    bomb position and possible moves.
+
+    :param agent_position: Current agent position on the field
+    :param bomb_position: Array of bomb positions
+    :param game_state: Current state of the game
+    :param possible_moves: Array that contains all possible moves
+    :return: 
+        - The depth at which an escape was found
+        - A boolean indicating if an escape was found
+    """
     
     space = '' # this is just for logging --> remove later
     for i in range(depth):
@@ -228,6 +260,14 @@ def escape_bomb_recursively_bfs(self, agent_position, bomb_positions, game_state
     return depth, False
 
 def make_agent_go_closer_to(target_position, agent_position, valid_moves):
+    """
+    This function invalides moves that guide the agent further away from a specified target.
+
+    :param target_position: Position of the target that the agent should get closer to
+    :param agent_position: Current agent position on the field
+    :param valid_moves: Array of valid moves
+    :return: The move that gets the agent closer to the given target
+    """
     moves_with_distance_to_target = []
     for move in valid_moves:
         target_distance = np.linalg.norm(target_position - (agent_position + move))
@@ -242,8 +282,10 @@ def make_agent_go_closer_to(target_position, agent_position, valid_moves):
 
 def state_to_features(self, game_state: dict):
     """
-        Note: When refactoring chunks of the code, encapsulate it first in a function, add the refactored 
-        code in a new function and verify correctness by using asserts and running several rounds
+    This function computes the features from the game state and is a core element of this agent.
+
+    :param game_state: Current state of the game
+    :return: Features as an array
     """
     if game_state is None:
         return None
@@ -320,11 +362,5 @@ def state_to_features(self, game_state: dict):
             go_down = 1
         if move == LEFT:
             go_left = 1
-
-    """
-    self.logger.debug(f'X {go_up} X')
-    self.logger.debug(f'{go_left} {drop_bomb} {go_right}')
-    self.logger.debug(f'X {go_down} X')
-    """
     
     return np.array([go_up, go_right, go_down, go_left, drop_bomb]).flatten().astype(np.float32)

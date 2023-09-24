@@ -22,9 +22,9 @@ def setup(self):
     """
     
     # Hyper parameters
-    BATCH_SIZE = 5
-    ALPHA = 0.0003
-    N_EPOCHS = 10
+    BATCH_SIZE = 2
+    ALPHA = 0.0003 #or 0.0003
+    N_EPOCHS = 5
     N_GAMES = 10000
     figure_file = 'C:\\Users\\Maximilian\\Desktop\\bomberman_rl\\agent_code\\PPO_agent\\scores.png'
     
@@ -38,6 +38,7 @@ def setup(self):
                     alpha = ALPHA, input_dims = input_dims, n_epochs = N_EPOCHS)
     #self.agent.save_models()
     self.agent.load_models()
+    #self.step_counter = 0
     
     if self.train == True:        
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -55,8 +56,48 @@ def act(self, game_state: dict) -> str:
     :param game_state: The dictionary that describes everything on the board.
     :return: The action to take as a string.
     """
+    if train_state == True:
+        """Here to controll the eplison decay for specific parts/steps of a whole game""""
+        action, prob, val, epsilon = load_values_from_file('values.pkl')
+        #self.step_counter += 1
+        #if self.step_counter <= 3:
+        #    epsilon = 1
+        #if self.step_counter == 4:
+        #    epsilon = 1
+        #if self.step_counter == 10:
+        #    epsilon = 0
+        #if action == 25:
+        #    self.step_counter = 0
+        self.agent.epsilon = epsilon
     
-    action = self.agent.give_back_action (game_state, self.train)
+    #action = self.agent.give_back_action (game_state, self.train)
+    action, prob, val, epsilon = self.agent.give_back_all(game_state, self.train)
+    
+    if train_state == True:
+        save_values_to_file('values.pkl', action, prob, val, epsilon)
     
     return action
 
+
+
+def save_values_to_file(file_path, action, prob, val, epsilon):
+    data = {
+        'action': action,
+        'prob': prob,
+        'val': val,
+        'epsilon': epsilon
+    }
+    
+    with open(file_path, 'wb') as file:
+        pickle.dump(data, file)
+
+def load_values_from_file(file_path):
+    with open(file_path, 'rb') as file:
+        data = pickle.load(file)
+    
+    action = data['action']
+    prob = data['prob']
+    val = data['val']
+    epsilon = data['epsilon']
+    
+    return action, prob, val, epsilon

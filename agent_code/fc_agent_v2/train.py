@@ -19,6 +19,12 @@ DISCOUNT = 0.9
 MOVE_ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 
 def sample(self, batch_size):
+    """
+    This function samples from the replay memory and weights ending transitions more.
+
+    :param batch_size: Size of the sample
+    :return: Sample from the transition memory
+    """
     weights = []
     for replay in self.transitions:
         weight = 1 if type(replay.next_state) is np.ndarray else 5
@@ -27,6 +33,9 @@ def sample(self, batch_size):
 
 
 def setup_training(self):
+    """
+    This function is used to initialized all variables related to training and is called once.
+    """
     self.batch_size = 32
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
@@ -50,7 +59,11 @@ def setup_training(self):
 
 def get_reward(self, events, old_features):
     """
-        Rewards the agent if it selects an action from the suggested actions.
+    Rewards the agent if it selects an action from the suggested actions. 
+
+    :param events: Array that contains game events
+    :param old_features: The features of the previous game state
+    :return: Reward
     """
     reward = -1.0
 
@@ -72,13 +85,17 @@ def get_reward(self, events, old_features):
     self.logger.debug(f'Reward: {reward}')
     return reward / 10
 
-def do_every_step(self, old_features, new_features, events: List[str]):
-    pass
-
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
+    """
+    This function orchestrates all steps relevant to one step of the game in training. Features and reward are
+    calculated, transitions are stored and the model is updated.
 
-
+    :param old_game_state: The old game state
+    :param self_action: The current action
+    :param new_game_state: The resulting game state
+    :param events: The events that occurred 
+    """
     
     self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
     self.logger.debug(f'self.action = {self.last_action}')
@@ -121,6 +138,15 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     
 
 def end_of_round(self, last_game_state: dict, last_action: str, events: List[str]):
+    """
+    This function orchestrates all steps relevant to the last step of the game in training. Features and reward are
+    calculated, transitions are stored and the model is updated. A collected data is also written to persistence
+    and the model is periodically written to disk.
+
+    :param last_game_state: The old game state
+    :param last_action: The current action
+    :param events: The events that occurred 
+    """
 
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
 
@@ -177,6 +203,9 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.logger.debug(f"Total Reward: {get_reward}")
 
 def update_params(self):
+    """
+    This function implements the update step of the DQN algorithm.
+    """
     if len(self.transitions) < self.batch_size:
         return
 
