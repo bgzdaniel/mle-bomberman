@@ -3,12 +3,15 @@ import numpy as np
 import torch
 from torch import nn
 
-
+# definition of the used model for policy and target network
 class DqnNet(nn.Module):
     def __init__(self, outer_self):
         super().__init__()
         self.layers = self._make_layers(outer_self)
 
+    # creates specified number of layers with given parameters,
+    # depending on the block size (number of convolutions)
+    # and on how deep the network should be (depth)
     def _make_layers(self, outer_self):
         prev_channels = outer_self.input_channels
         layers = []
@@ -37,6 +40,9 @@ class DqnNet(nn.Module):
 def setup(self):
     self.actions = ["UP", "RIGHT", "DOWN", "LEFT", "WAIT", "BOMB"]
 
+    # important hyperparameters and parameters 
+    # which are re-used in other functions
+
     self.epsilon = 1
     self.epsilon_end = 0.05
     self.epsilon_decay = 0.999
@@ -58,6 +64,8 @@ def setup(self):
     self.myself_dim = 5
     self.other_dim = 6
 
+    # training done on GPU,
+    # inference on CPU for the tournament
     if self.train == True:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     else:
@@ -70,14 +78,23 @@ def setup(self):
     self.policy_net.train()
     print(f"Using model: {self.policy_net}")
 
+    # load state dict when on inference mode
     if self.train == False:
         self.policy_net.load_state_dict(torch.load("agent.pt"))
 
 
 def act(self, game_state: dict) -> str:
+    # get transformed features
     features = state_to_features(self, game_state)
+
+    # use probability epsilon to explore environment when training, 
+    # otherwise let only network decide actions
     if self.train:
         rand = random.random()
+
+        # do random action with a given probability to explore the environment, 
+        # otherwise policy network decides on action, 
+        # probability epsilon is decayed exponentially
         if rand <= self.epsilon:
             action = random.randint(0, len(self.actions) - 1)
             if self.epsilon > self.epsilon_end:
@@ -97,6 +114,8 @@ def act(self, game_state: dict) -> str:
     return self.actions[action]
 
 
+# gets the radius of every bomb by writing the timer as value
+#  to the affected coordinates as keys
 def get_bomb_rad_dict(game_state):
     bombs = {coords: timer for coords, timer in game_state["bombs"]}
     for coords, timer in game_state["bombs"]:
@@ -116,8 +135,12 @@ def state_to_features(self, game_state: dict):
     if game_state is None:
         return None
 
+    # first dimension is the game field
     field = game_state["field"]
 
+    # second dimension are the bomb coordinates and their timer as value, 
+    # third dimension are the bomb radius, the affected coordinates
+    # of the bomb have the timer as value
     bombs = np.full(self.field_shape, -1, dtype=np.int32)
     bombs_rad = np.full(self.field_shape, -1, dtype=np.int32)
     if len(game_state["bombs"]) != 0:
@@ -139,17 +162,24 @@ def state_to_features(self, game_state: dict):
                 else:
                     bombs_rad[x, y] = timer
 
+    # forth dimension is the explosion map
     explosion_map = game_state["explosion_map"]
 
+    # fifth dimension has coin coordiantes,
+    # 1 if coin exists in given coordinate, otherwise 0
     coins = np.zeros(self.field_shape, dtype=np.int32)
     if len(game_state["coins"]) != 0:
         coin_coords = np.array(game_state["coins"])
         coins[coin_coords[:, 0], coin_coords[:, 1]] = 1
 
+    # sixth dimension includes coordinate of the player himself,
+    # value 1 if player can place bomb, otherwise -1 in the
+    # coordinate of the player
     myself = np.zeros(self.field_shape, dtype=np.int32)
     myself_bomb_action = 1 if game_state["self"][2] else -1
     myself[game_state["self"][3][0], game_state["self"][3][1]] = myself_bomb_action
 
+    # seventh dimension, the same like the sixth feature map but for other players
     others = np.zeros(self.field_shape, dtype=np.int32)
     if len(game_state["others"]) != 0:
         others_coords = np.array([coords for _, _, _, coords in game_state["others"]])

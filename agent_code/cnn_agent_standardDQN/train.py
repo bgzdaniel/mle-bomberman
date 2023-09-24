@@ -13,7 +13,10 @@ import events as e
 from .callbacks import state_to_features, DqnNet, get_bomb_rad_dict
 from .utility import DataCollector
 
+# definition of transition which are stored in experience replay
 Transition = namedtuple("Transition", ("state", "action", "next_state", "reward"))
+
+# global hyperparameters
 TRANSITION_HISTORY_SIZE = int(1e6)
 DISCOUNT = 0.99
 
@@ -29,7 +32,8 @@ def sample(self, batch_size):
 
 
 def setup_training(self):
-    self.batch_size = 128
+    # hyperparameters and initializations for training
+    self.batch_size = 32
     self.target_net = DqnNet(self).to(self.device)
     self.target_net.load_state_dict(self.policy_net.state_dict())
     self.target_net.train()
@@ -53,6 +57,7 @@ def setup_training(self):
     self.reward_scaling = 100
 
 
+# given reward for a set of occured events in a round
 def reward_from_events(self, events: List[str]) -> int:
     total_reward = 0
 
@@ -70,6 +75,7 @@ def reward_from_events(self, events: List[str]) -> int:
         if event in game_rewards:
             total_reward += game_rewards[event]
 
+    # give once negative reward if either of these events occured
     if e.KILLED_SELF in events or e.GOT_KILLED in events:
         total_reward += -100
 
@@ -77,6 +83,8 @@ def reward_from_events(self, events: List[str]) -> int:
     return total_reward
 
 
+# calculates shortest distance to the nearest coin
+# from the coordinate of the player with BFS
 def distance_to_nearest_coin(self, feature_maps, game_state):
     field = feature_maps[self.field_dim]
     coin_coords = game_state["coins"]
@@ -126,7 +134,7 @@ def reward_from_actions(
     new_player_coord = new_game_state["self"][3]
     old_player_coord = old_game_state["self"][3]
 
-    bomb_scaling = 10
+    bomb_scaling = 5
     # punish agent for being in bomb radius
     if new_player_coord in new_bombs_rad and e.BOMB_DROPPED not in events:
         total_reward += (new_bombs_rad[new_player_coord] - 4) * bomb_scaling
@@ -160,6 +168,8 @@ def reward_from_actions(
                 ) * bomb_scaling  # for placing bomb close to other player
                 total_reward += bomb_reward
 
+    # reward agent for getting closer to the nearest coin and punish agent
+    # for stepping away from coin or increasing distance to current nearest coin
     if (
         any(event in MOVE_ACTIONS for event in events)
         and (e.COIN_COLLECTED not in events)
@@ -170,10 +180,10 @@ def reward_from_actions(
 
         old_min_distance = distance_to_nearest_coin(self, old_features, old_game_state)
         new_min_distance = distance_to_nearest_coin(self, new_features, new_game_state)
+        diff = old_min_distance - new_min_distance
+        coin_reward += diff * 2
 
-        coin_reward += old_min_distance - new_min_distance
-
-        reward_for_coin_proximity = old_min_distance - new_min_distance
+        reward_for_coin_proximity = diff * 2
         # weight reward depending on distance to nearest coin
         reward_for_coin_proximity *= 1 / (new_min_distance) ** 2
         coin_reward += reward_for_coin_proximity
@@ -185,6 +195,7 @@ def reward_from_actions(
     return total_reward
 
 
+# get rewards by using occured events and defined reward functions
 def game_events_occurred(
     self,
     old_game_state: dict,
@@ -211,16 +222,23 @@ def game_events_occurred(
         new_features,
     )
 
+    # scale rewards down to better match other values like weights
+    # of the network, as big reward lead to unstable learning
     reward /= self.reward_scaling
+
+    # for logging
     self.reward_per_step.append(reward)
 
+    # for logging
     if e.INVALID_ACTION in events:
         self.invalid_actions_per_round += 1
 
+    # add experience to the gathered transitions
     self.transitions.append(
         Transition(old_features, self.actions.index(self_action), new_features, reward)
     )
 
+    # update parameters
     loss = update_params(self)
 
     # copy weights to target net after n steps
@@ -238,6 +256,7 @@ def game_events_occurred(
     self.logger.debug(f"Total Reward: {reward}")
 
 
+# similar to game_events_occured but with additional logging for every occured round
 def end_of_round(self, last_game_state: dict, last_action: str, events: List[str]):
     self.logger.debug(
         f'Encountered event(s) {", ".join(map(repr, events))} in final step'
@@ -245,8 +264,11 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
 
     last_features = state_to_features(self, last_game_state)
 
+    # scale rewards down to better match other values like weights
+    # of the network, as big reward lead to unstable learning
     reward = reward_from_events(self, events) / self.reward_scaling
 
+    # for logging
     self.reward_per_step.append(reward)
 
     if e.INVALID_ACTION in events:
@@ -256,6 +278,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
         Transition(last_features, self.actions.index(last_action), None, reward)
     )
 
+    # update parameters
     loss = update_params(self)
 
     # copy weights to target net after n steps
@@ -275,6 +298,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     )
     killed_self = e.KILLED_SELF in events or e.GOT_KILLED in events
 
+    # get all previously defined metrics for logging and visualization
     self.data_collector.write(
         train_iter=self.train_iter,
         round=self.round,
@@ -299,13 +323,15 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
         torch.save(self.policy_net.state_dict(), "agent.pt")
 
 
+# perform update with standard Q-Learning approach
+# presented in https://arxiv.org/abs/1312.5602
 def update_params(self):
     if len(self.transitions) < self.batch_size:
         return
 
     replays = sample(self, self.batch_size)
 
-    # calculate predictions
+    # calculate predictions with policy network
     replays_states = torch.cat(
         [torch.from_numpy(replay.state)[None] for replay in replays]
     ).to(self.device)
@@ -316,7 +342,7 @@ def update_params(self):
     predictions = torch.gather(state_forward, 1, replays_actions)
     predictions = predictions.type(torch.FloatTensor)
 
-    # calculate targets
+    # calculate targets with target network
     replays_non_terminal_states = []
     for i, replay in enumerate(replays):
         if type(replay.next_state) is np.ndarray:
@@ -324,7 +350,6 @@ def update_params(self):
     replays_non_terminal_states = torch.tensor(replays_non_terminal_states).to(
         self.device
     )
-
     replays_next_states = []
     for replay in replays:
         if type(replay.next_state) is np.ndarray:
@@ -335,7 +360,6 @@ def update_params(self):
     max_future_actions[replays_non_terminal_states, :] = torch.max(
         self.target_net(replays_next_states), dim=1
     )[0][:, None]
-
     replays_rewards = torch.tensor([replay.reward for replay in replays]).to(
         self.device
     )[:, None]
