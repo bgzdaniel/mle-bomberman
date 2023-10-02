@@ -57,7 +57,7 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     if train_state == True:
-        """Here to controll the eplison decay for specific parts/steps of a whole game""""
+        #Here to controll the eplison decay for specific parts/steps of a whole game
         action, prob, val, epsilon = load_values_from_file('values.pkl')
         #self.step_counter += 1
         #if self.step_counter <= 3:
