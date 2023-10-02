@@ -80,7 +80,7 @@ def setup(self):
 
     # load state dict when on inference mode
     if self.train == False:
-        self.policy_net.load_state_dict(torch.load("agent.pt"))
+        self.policy_net.load_state_dict(torch.load("agent.pt", map_location=torch.device('cpu')))
 
 
 def act(self, game_state: dict) -> str:
