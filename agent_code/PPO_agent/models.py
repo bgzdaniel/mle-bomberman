@@ -13,7 +13,7 @@ ACTIONS_NUM = [0, 1, 2, 3, 4, 5]
 
 class ActorModel(nn.Module):
     def __init__(self, n_actions, input_dims, alpha,
-            Layer1_dims=17*20, Layer2_dims=119*20, save_dir=NONE):
+            Layer1_dims=17*20, Layer2_dims=119*20, save_dir=None):
         super(ActorModel, self).__init__()
 
         self.save_file = os.path.join(save_dir, 'PPO-actor')
@@ -49,7 +49,7 @@ class ActorModel(nn.Module):
 
 class CriticModel(nn.Module):
     def __init__(self, input_dims, alpha, Layer1_dims=17*20, Layer2_dims=119*20,
-            save_dir= NONE):
+            save_dir= None):
         super(CriticModel, self).__init__()
 
         self.save_file = os.path.join(save_dir, 'PPO-critic')
