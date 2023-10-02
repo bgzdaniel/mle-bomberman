@@ -36,8 +36,8 @@ def setup(self):
 
     self.agent = Agent(n_actions = n_actions, batch_size = BATCH_SIZE, 
                     alpha = ALPHA, input_dims = input_dims, n_epochs = N_EPOCHS)
-    #self.agent.save_models()
-    self.agent.load_models()
+    self.agent.save_models()
+    #self.agent.load_models()
     #self.step_counter = 0
     
     if self.train == True:        
