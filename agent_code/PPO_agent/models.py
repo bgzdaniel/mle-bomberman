@@ -13,7 +13,7 @@ ACTIONS_NUM = [0, 1, 2, 3, 4, 5]
 
 class ActorModel(nn.Module):
     def __init__(self, n_actions, input_dims, alpha,
-            Layer1_dims=17*20, Layer2_dims=119*20, save_dir='C:\\Users\\Maximilian\\Desktop\\bomberman_rl\\agent_code\\PPO_agent'):
+            Layer1_dims=17*20, Layer2_dims=119*20, save_dir=NONE):
         super(ActorModel, self).__init__()
 
         self.save_file = os.path.join(save_dir, 'PPO-actor')
@@ -25,6 +25,11 @@ class ActorModel(nn.Module):
             nn.Linear(Layer2_dims, n_actions),
             nn.Softmax(dim=-1))
 
+        if save_dir is None:
+            # Use the current working directory to save the model
+            self.save_dir = os.getcwd()
+        else:
+            self.save_dir = save_dir
 
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         self.to(self.device)
@@ -44,7 +49,7 @@ class ActorModel(nn.Module):
 
 class CriticModel(nn.Module):
     def __init__(self, input_dims, alpha, Layer1_dims=17*20, Layer2_dims=119*20,
-            save_dir='C:\\Users\\Maximilian\\Desktop\\bomberman_rl\\agent_code\\PPO_agent'):
+            save_dir= NONE):
         super(CriticModel, self).__init__()
 
         self.save_file = os.path.join(save_dir, 'PPO-critic')
@@ -55,6 +60,13 @@ class CriticModel(nn.Module):
             nn.ReLU(),
             nn.Linear(Layer2_dims, 1))
 
+
+        if save_dir is None:
+            # Use the current working directory to save the model
+            self.save_dir = os.getcwd()
+        else:
+            self.save_dir = save_dir
+            
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         self.to(self.device)
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
