@@ -28,8 +28,6 @@ class ActorModel(nn.Module):
 
 
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
-        self.to(self.device)
-        self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
 
     def forward(self, state):
         distribution = self.actor(state)
@@ -58,8 +56,6 @@ class CriticModel(nn.Module):
 
             
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
-        self.to(self.device)
-        self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
 
     def forward(self, state):
         value = self.critic(state)
