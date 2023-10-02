@@ -56,7 +56,7 @@ def act(self, game_state: dict) -> str:
     :param game_state: The dictionary that describes everything on the board.
     :return: The action to take as a string.
     """
-    if train_state == True:
+    if self.train == True:
         #Here to controll the eplison decay for specific parts/steps of a whole game
         action, prob, val, epsilon = load_values_from_file('values.pkl')
         #self.step_counter += 1
@@ -73,7 +73,7 @@ def act(self, game_state: dict) -> str:
     #action = self.agent.give_back_action (game_state, self.train)
     action, prob, val, epsilon = self.agent.give_back_all(game_state, self.train)
     
-    if train_state == True:
+    if self.train == True:
         save_values_to_file('values.pkl', action, prob, val, epsilon)
     
     return action
